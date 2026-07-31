@@ -1,5 +1,6 @@
 import { ThemeProvider } from '@mui/material/styles'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { ToastProvider } from './services/feedback'
 import { AppShell } from './components/layout/AppShell'
 import { Dashboard } from './pages/Dashboard'
 import { AnalyzeCompany } from './pages/AnalyzeCompany'
@@ -16,7 +17,7 @@ import { theme } from './theme'
 import './App.css'
 
 function App() {
-  return <ThemeProvider theme={theme}><BrowserRouter><Routes><Route path="/login" element={<Login />} /><Route element={<AppShell />}><Route path="/" element={<Dashboard />} /><Route path="/analysis/new" element={<AnalyzeCompany />} /><Route path="/results" element={<Results />} /><Route path="/results/pillar/:pillarId" element={<PlaceholderPage />} /><Route path="/history" element={<History />} /><Route path="/compare" element={<CompareCompanies />} /><Route path="/watchlist" element={<Watchlist />} /><Route path="/reports" element={<Reports />} /><Route path="/alerts" element={<PlaceholderPage />} /><Route path="/settings" element={<Settings />} /><Route path="/loading" element={<LoadingPage />} /><Route path="/empty/:variant" element={<EmptyPage />} /><Route path="/error/:type" element={<ErrorPage />} /><Route path="/dialog-examples" element={<DialogExamples />} /><Route path="*" element={<Navigate to="/" replace />} /></Route></Routes></BrowserRouter></ThemeProvider>
+  return <ThemeProvider theme={theme}><ToastProvider><BrowserRouter><Routes><Route path="/login" element={<Login />} /><Route element={<AppShell />}><Route path="/" element={<Dashboard />} /><Route path="/analysis/new" element={<AnalyzeCompany />} /><Route path="/results" element={<Results />} /><Route path="/results/pillar/:pillarId" element={<PlaceholderPage />} /><Route path="/history" element={<History />} /><Route path="/compare" element={<CompareCompanies />} /><Route path="/watchlist" element={<Watchlist />} /><Route path="/reports" element={<Reports />} /><Route path="/alerts" element={<PlaceholderPage />} /><Route path="/settings" element={<Settings />} /><Route path="/loading" element={<LoadingPage />} /><Route path="/empty/:variant" element={<EmptyPage />} /><Route path="/error/:type" element={<ErrorPage />} /><Route path="/dialog-examples" element={<DialogExamples />} /><Route path="*" element={<Navigate to="/" replace />} /></Route></Routes></BrowserRouter></ToastProvider></ThemeProvider>
 }
 
 export default App
