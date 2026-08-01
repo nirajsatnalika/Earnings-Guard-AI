@@ -1,48 +1,49 @@
 """FastAPI application entrypoint for EarningsGuard AI."""
 
-from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
-import logging
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.v1.router import api_router
+from app.api.v1 import api_router
 from app.core.config import settings
-from app.core.exception_handlers import register_exception_handlers
-from app.core.logging import configure_logging
-from app.database.database import init_db
+from app.core.exceptions import (
+    EarningsGuardError,
+    earnings_guard_exception_handler,
+)
+from app.core.logging import configure_logging, get_logger
 
-logger = logging.getLogger(__name__)
+configure_logging()
+logger = get_logger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI) -> AsyncGenerator[None, None]:
-	"""Initialize and clean up application resources."""
-	_ = _app
-	logger.info("Starting %s", settings.app_name)
-	init_db()
-	yield
-	logger.info("Shutting down %s", settings.app_name)
+async def lifespan(app: FastAPI):
+    settings.ensure_upload_dir()
+    logger.info("%s backend starting up", settings.PROJECT_NAME)
+    yield
+    logger.info("%s backend shutting down", settings.PROJECT_NAME)
 
 
 app = FastAPI(
-	title=settings.app_name,
-	version=settings.app_version,
-	description="Enterprise financial forensics infrastructure for EarningsGuard AI.",
-	docs_url="/docs",
-	redoc_url="/redoc",
-	openapi_url="/openapi.json",
-	lifespan=lifespan,
+    title=settings.PROJECT_NAME,
+    version="1.0.0",
+    description="AI-powered Financial Forensics platform for detecting earnings manipulation.",
+    lifespan=lifespan,
 )
 
-configure_logging()
 app.add_middleware(
-	CORSMiddleware,
-	allow_origins=settings.cors_origin_list,
-	allow_credentials=True,
-	allow_methods=["*"],
-	allow_headers=["*"],
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-register_exception_handlers(app)
-app.include_router(api_router)
+
+app.add_exception_handler(EarningsGuardError, earnings_guard_exception_handler)
+app.include_router(api_router, prefix=settings.API_V1_PREFIX)
+
+
+@app.get("/health", tags=["health"])
+async def health() -> dict[str, str]:
+    return {"status": "ok", "service": settings.PROJECT_NAME}

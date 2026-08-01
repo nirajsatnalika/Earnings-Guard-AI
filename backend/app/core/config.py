@@ -1,30 +1,21 @@
-"""Typed application settings loaded from environment variables."""
+"""Application configuration."""
 
 from pathlib import Path
 
-from dotenv import load_dotenv
-from pydantic import BaseModel, ConfigDict, Field
 
-BASE_DIR = Path(__file__).resolve().parents[2]
-load_dotenv(BASE_DIR / ".env")
+class Settings:
+    """Central application settings.
 
+    Kept as a plain class (no pydantic-settings dependency) to match the
+    existing lightweight configuration approach.
+    """
 
-class Settings(BaseModel):
-	"""Runtime configuration for the EarningsGuard AI service."""
+    PROJECT_NAME: str = "EarningsGuard AI"
+    API_V1_PREFIX: str = "/api/v1"
+    UPLOAD_DIR: Path = Path("uploads")
 
-	model_config = ConfigDict(frozen=True, extra="ignore")
-
-	app_name: str = Field(default="EarningsGuard AI", validation_alias="APP_NAME")
-	app_version: str = Field(default="1.0.0", validation_alias="APP_VERSION")
-	environment: str = Field(default="development", validation_alias="ENVIRONMENT")
-	debug: bool = Field(default=False, validation_alias="DEBUG")
-	database_url: str = Field(default="sqlite:///./earningsguard.db", validation_alias="DATABASE_URL")
-	cors_origins: str = Field(default="http://localhost:5173", validation_alias="CORS_ORIGINS")
-
-	@property
-	def cors_origin_list(self) -> list[str]:
-		"""Return configured CORS origins as a normalized list."""
-		return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+    def ensure_upload_dir(self) -> None:
+        self.UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 
 settings = Settings()
