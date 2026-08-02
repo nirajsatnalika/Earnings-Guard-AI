@@ -1,22 +1,18 @@
-"""Calculation utilities — value extraction and safe arithmetic helpers.
+"""Calculation utilities — value extraction, safe arithmetic, and interpretation helpers.
 
 These helpers bridge the parsed DataFrames + canonical-to-label mapping into
-the simple ``float | None`` inputs that every ratio function in the formula
-library expects. They also provide divide-safe wrappers so ratio functions
-never need to repeat boilerplate guard logic.
+the simple ``float | None`` inputs that every ratio function expects. They also
+provide divide-safe wrappers so ratio functions never need to repeat
+boilerplate guard logic.
 """
 
 from __future__ import annotations
 
-import numbers
-import re
-from typing import Callable
+from typing import Iterable
 
 import pandas as pd
 
 from app.calculations.validation.data_type import _coerce_numeric
-
-_CURRENCY_SYMBOLS = re.compile(r"[$€£¥₹₩]")
 
 
 class ValueStore:
@@ -47,8 +43,12 @@ class ValueStore:
         return values[0]
 
     def get_all(self, canonical: str) -> list[float]:
-        """Return all numeric values for *canonical* (period 0, 1, …)."""
+        """Return all numeric values for *canonical* (period 0, 1, ...)."""
         return list(self._values.get(canonical, []))
+
+    def has(self, canonical: str) -> bool:
+        """Return True if *canonical* has at least one value."""
+        return bool(self._values.get(canonical))
 
 
 def _collect_values_for_labels(
@@ -57,13 +57,12 @@ def _collect_values_for_labels(
 ) -> list[float]:
     """Collect coercible numeric values for a set of raw labels across sheets.
 
-    Values are collected per period-column in order (column 1, then 2, …) so
+    Values are collected per period-column in order (column 1, then 2, ...) so
     that growth ratios have ordered time series.
     """
     if not labels:
         return []
 
-    # Determine the maximum number of value columns across all matching rows.
     max_cols = 1
     matches: list[tuple[pd.DataFrame, int]] = []
     for sheets in frames.values():
@@ -82,7 +81,6 @@ def _collect_values_for_labels(
     if not matches:
         return []
 
-    # For each value column, take the first coercible value across all matches.
     result: list[float] = []
     for col in range(1, max_cols):
         for frame, idx in matches:
@@ -99,10 +97,7 @@ def _collect_values_for_labels(
 # Safe arithmetic helpers
 # ---------------------------------------------------------------------------
 
-def safe_divide(
-    numerator: float | None,
-    denominator: float | None,
-) -> float | None:
+def safe_divide(numerator: float | None, denominator: float | None) -> float | None:
     """Divide two values, returning None for missing inputs or zero denominator."""
     if numerator is None or denominator is None:
         return None
@@ -125,6 +120,34 @@ def safe_add(a: float | None, b: float | None) -> float | None:
     return a + b
 
 
+def safe_multiply(a: float | None, b: float | None) -> float | None:
+    """Multiply two values, returning None if either is missing."""
+    if a is None or b is None:
+        return None
+    return a * b
+
+
+def safe_sum(values: Iterable[float | None]) -> float | None:
+    """Sum a list of values. Returns None if any value is missing."""
+    total = 0.0
+    for v in values:
+        if v is None:
+            return None
+        total += v
+    return total
+
+
+def safe_average(values: Iterable[float | None]) -> float | None:
+    """Average a list of values. Returns None if any value is missing or list is empty."""
+    collected = list(values)
+    if not collected:
+        return None
+    total = safe_sum(collected)
+    if total is None:
+        return None
+    return total / len(collected)
+
+
 def safe_growth(current: float | None, previous: float | None) -> float | None:
     """Compute period-over-period growth rate, returning None on missing/zero base."""
     if current is None or previous is None:
@@ -133,6 +156,17 @@ def safe_growth(current: float | None, previous: float | None) -> float | None:
         return None
     return (current - previous) / abs(previous)
 
+
+def safe_days(turnover: float | None) -> float | None:
+    """Convert a turnover ratio to days (365 / turnover). Returns None if turnover is missing/zero."""
+    if turnover is None or turnover == 0:
+        return None
+    return 365.0 / turnover
+
+
+# ---------------------------------------------------------------------------
+# Interpretation helpers
+# ---------------------------------------------------------------------------
 
 def interpret_ratio(
     value: float | None,
@@ -171,3 +205,37 @@ def interpret_margin(value: float | None, healthy_pct: float, concerning_pct: fl
     if pct <= concerning_pct:
         return f"Weak margin ({pct:.1f}%) — below the caution benchmark of {concerning_pct:.0f}%."
     return f"Moderate margin ({pct:.1f}%) — between {concerning_pct:.0f}% and {healthy_pct:.0f}%."
+
+
+def interpret_positive(value: float | None, label: str = "value") -> str:
+    """Interpret a value where positive is good and negative is bad."""
+    if value is None:
+        return "Could not be computed due to missing inputs or division by zero."
+    if value >= 0:
+        return f"Positive {label} ({value:,.0f}) — favorable position."
+    return f"Negative {label} ({value:,.0f}) — unfavorable position."
+
+
+def interpret_leverage(value: float | None, healthy: float, caution: float) -> str:
+    """Interpret a leverage ratio where lower is better."""
+    return interpret_ratio(value, healthy, caution, higher_is_better=False)
+
+
+def interpret_days(value: float | None, good_days: float, bad_days: float, higher_is_better: bool = False) -> str:
+    """Interpret a days-based metric."""
+    return interpret_ratio(value, good_days, bad_days, higher_is_better=higher_is_better)
+
+
+def benchmark_range(low: float, high: float, unit: str = "") -> str:
+    """Format a benchmark range string."""
+    return f"{low}{unit} – {high}{unit}"
+
+
+def benchmark_min(value: float, unit: str = "") -> str:
+    """Format a minimum benchmark string."""
+    return f">= {value}{unit}"
+
+
+def benchmark_max(value: float, unit: str = "") -> str:
+    """Format a maximum benchmark string."""
+    return f"<= {value}{unit}"
