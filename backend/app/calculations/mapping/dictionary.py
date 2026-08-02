@@ -13,6 +13,7 @@ CANONICAL_FIELDS: list[str] = [
     "Trade Payables",
     "Property Plant and Equipment",
     "Depreciation",
+    "Gross Profit",
     "EBIT",
     "EBITDA",
     "Finance Cost",

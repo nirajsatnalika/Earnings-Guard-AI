@@ -69,6 +69,11 @@ ALIASES: dict[str, str] = {
     "Accumulated Depreciation": "Depreciation",
     "Depreciation Expense": "Depreciation",
 
+    # --- Gross Profit ---
+    "GP": "Gross Profit",
+    "Gross Profit": "Gross Profit",
+    "Gross Margin": "Gross Profit",
+
     # --- EBIT ---
     "Operating Profit": "EBIT",
     "Earnings Before Interest and Tax": "EBIT",
