@@ -1,0 +1,27 @@
+{
+  "efs_version": "1.0",
+  "risk_bands": {
+    "low": {
+      "min_score": 80.0,
+      "label": "Low"
+    },
+    "moderate": {
+      "min_score": 60.0,
+      "label": "Moderate"
+    },
+    "high": {
+      "min_score": 40.0,
+      "label": "High"
+    },
+    "critical": {
+      "min_score": 0.0,
+      "label": "Critical"
+    }
+  },
+  "confidence_factors": {
+    "missing_variable_penalty": 5.0,
+    "missing_statement_penalty": 20.0,
+    "validation_error_penalty": 10.0,
+    "low_parser_confidence_penalty": 15.0
+  }
+}

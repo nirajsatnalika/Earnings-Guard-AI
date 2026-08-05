@@ -1,0 +1,113 @@
+{
+  "efs_version": "1.0",
+  "rules": [
+    {
+      "rule_id": "RULE_REV_REC_01",
+      "category": "Revenue Recognition",
+      "severity": "Medium",
+      "group": "revenue_integrity",
+      "priority": 10,
+      "enabled": true,
+      "version": "1.0",
+      "condition": {
+        "operator": "gt",
+        "left_variable": "receivables_growth",
+        "right_variable": "revenue_growth"
+      },
+      "message": "Receivables are increasing faster than revenue.",
+      "recommendation": "Review revenue recognition policies and unbilled receivable balances.",
+      "question_for_management": "What explains the increase in outstanding receivables relative to top-line growth?",
+      "variables_used": ["receivables_growth", "revenue_growth"]
+    },
+    {
+      "rule_id": "RULE_CFO_PAT_01",
+      "category": "Cash Flow",
+      "severity": "High",
+      "group": "cash_flow_integrity",
+      "priority": 20,
+      "enabled": true,
+      "version": "1.0",
+      "condition": {
+        "operator": "lt",
+        "left_variable": "cfo_to_pat_ratio",
+        "threshold": 0.8
+      },
+      "message": "Operating cash flow conversion is significantly lagging reported net income.",
+      "recommendation": "Perform detailed cash flow reconciliation and check for non-cash earnings inflation.",
+      "question_for_management": "What primary factors account for operating cash flow trailing reported net income?",
+      "variables_used": ["cfo_to_pat_ratio", "operating_cash_flow", "net_income"]
+    },
+    {
+      "rule_id": "RULE_ACCRUAL_01",
+      "category": "Accruals",
+      "severity": "High",
+      "group": "accrual_quality",
+      "priority": 15,
+      "enabled": true,
+      "version": "1.0",
+      "condition": {
+        "operator": "gt",
+        "left_variable": "sloan_accrual_ratio",
+        "threshold": 0.1
+      },
+      "message": "Elevated Sloan accrual ratio indicates potential earnings quality degradation.",
+      "recommendation": "Decompose accruals into operating vs working capital components.",
+      "question_for_management": "Can management explain the origin of large working capital accruals in recent reporting periods?",
+      "variables_used": ["sloan_accrual_ratio", "total_assets"]
+    },
+    {
+      "rule_id": "RULE_WC_DSO_01",
+      "category": "Working Capital",
+      "severity": "Medium",
+      "group": "working_capital_health",
+      "priority": 5,
+      "enabled": true,
+      "version": "1.0",
+      "condition": {
+        "operator": "gt",
+        "left_variable": "dso_days",
+        "threshold": 90.0
+      },
+      "message": "Days Sales Outstanding (DSO) exceeds 90 days baseline.",
+      "recommendation": "Audit customer payment terms and allowance for doubtful accounts.",
+      "question_for_management": "Are extended customer credit terms driving the elevated DSO?",
+      "variables_used": ["dso_days", "accounts_receivable"]
+    },
+    {
+      "rule_id": "RULE_BS_AQI_01",
+      "category": "Balance Sheet",
+      "severity": "Critical",
+      "group": "balance_sheet_integrity",
+      "priority": 30,
+      "enabled": true,
+      "version": "1.0",
+      "condition": {
+        "operator": "gt",
+        "left_variable": "asset_quality_index",
+        "threshold": 1.2
+      },
+      "message": "High proportion of non-current intangible or capitalization assets detected on balance sheet.",
+      "recommendation": "Verify impairment testing models and capitalization thresholds.",
+      "question_for_management": "What asset categories contributed to the shift in non-current asset composition?",
+      "variables_used": ["asset_quality_index", "intangible_assets", "total_assets"]
+    },
+    {
+      "rule_id": "RULE_GOV_DISC_01",
+      "category": "Governance",
+      "severity": "Low",
+      "group": "governance_quality",
+      "priority": 1,
+      "enabled": true,
+      "version": "1.0",
+      "condition": {
+        "operator": "eq",
+        "left_variable": "has_auditor_change",
+        "value": true
+      },
+      "message": "Recent change in external audit firm noted.",
+      "recommendation": "Review auditor resignation or replacement disclosure filings.",
+      "question_for_management": "What were the circumstances leading to the change in statutory auditor?",
+      "variables_used": ["has_auditor_change"]
+    }
+  ]
+}

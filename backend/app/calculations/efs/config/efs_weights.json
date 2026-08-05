@@ -1,0 +1,23 @@
+{
+  "efs_version": "1.0",
+  "pillar_weights": {
+    "financial_statement_quality": 0.15,
+    "cash_flow_integrity": 0.20,
+    "accrual_quality": 0.20,
+    "working_capital_health": 0.10,
+    "balance_sheet_integrity": 0.15,
+    "growth_sustainability": 0.10,
+    "governance_disclosure": 0.10
+  },
+  "sub_variable_weights": {
+    "cash_flow_integrity": {
+      "CFO/PAT": 0.08,
+      "FCF_Margin": 0.07,
+      "Cash_Conversion": 0.05
+    },
+    "accrual_quality": {
+      "Sloan_Accrual": 0.10,
+      "Discretionary_Accruals": 0.10
+    }
+  }
+}

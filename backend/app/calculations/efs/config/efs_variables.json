@@ -1,0 +1,37 @@
+{
+  "efs_version": "1.0",
+  "registered_variables": {
+    "financial_statement_quality": [
+      "is_reconciled",
+      "bs_equation_check",
+      "rounding_variance"
+    ],
+    "cash_flow_integrity": [
+      "CFO/PAT",
+      "FCF_Margin",
+      "Cash_Conversion"
+    ],
+    "accrual_quality": [
+      "Sloan_Accrual",
+      "Discretionary_Accruals"
+    ],
+    "working_capital_health": [
+      "DSO",
+      "DIO",
+      "DPO",
+      "CCC"
+    ],
+    "balance_sheet_integrity": [
+      "Asset_Quality_Index",
+      "Depreciation_Index"
+    ],
+    "growth_sustainability": [
+      "SGI",
+      "Margin_Expansion"
+    ],
+    "governance_disclosure": [
+      "Audit_Opinion",
+      "Related_Party_Ratio"
+    ]
+  }
+}
