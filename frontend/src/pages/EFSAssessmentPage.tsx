@@ -36,16 +36,27 @@ export function EFSAssessmentPage() {
   const [assessment, setAssessment] = useState<EFSResponse | null>(null)
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
+  const [notFound, setNotFound] = useState<boolean>(false)
   const [selectedPillar, setSelectedPillar] = useState<PillarResult | null>(null)
 
   const fetchAssessment = useCallback(async () => {
     setLoading(true)
     setError(null)
+    setNotFound(false)
     try {
+      // Phase 5: POST creates + persists. The EFS API returns the full assessment.
+      // For navigation from history (/assessments/:analysisId), we still POST to retrieve
+      // (idempotent — existing completed assessments are not re-run server-side).
       const data = await EFSService.getAssessment(analysisId)
       setAssessment(data)
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load EFS assessment.')
+      const msg = err instanceof Error ? err.message : 'Failed to load EFS assessment.'
+      // 404 means assessment does not exist — show "Not Found", do NOT silently re-run engine
+      if (msg.includes('404') || msg.includes('not found') || msg.toLowerCase().includes('no completed assessment')) {
+        setNotFound(true)
+      } else {
+        setError(msg)
+      }
     } finally {
       setLoading(false)
     }
@@ -54,6 +65,7 @@ export function EFSAssessmentPage() {
   useEffect(() => {
     fetchAssessment()
   }, [fetchAssessment])
+
 
   if (loading) {
     return (
@@ -102,7 +114,33 @@ export function EFSAssessmentPage() {
     )
   }
 
+  if (notFound) {
+    return (
+      <Container maxWidth="lg" sx={{ py: 6 }}>
+        <Paper elevation={0} sx={{ p: 4, textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: 2 }}>
+          <Typography variant="h5" sx={{ color: '#0f172a', fontWeight: 700, mb: 1 }}>
+            Assessment Not Found
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+            No completed assessment found for: <code>{analysisId}</code>
+          </Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+            To view an assessment, it must first be submitted via the assessment workflow.
+            The engine will not re-run automatically.
+          </Typography>
+          <Button variant="contained" onClick={() => navigate('/analysis/new')} sx={{ mr: 1 }}>
+            Start New Assessment
+          </Button>
+          <Button variant="outlined" onClick={() => navigate('/history')}>
+            View History
+          </Button>
+        </Paper>
+      </Container>
+    )
+  }
+
   if (!assessment) {
+
     return (
       <Container maxWidth="lg" sx={{ py: 6 }}>
         <Paper elevation={0} sx={{ p: 4, textAlign: 'center', border: '1px solid #cbd5e1', borderRadius: 2 }}>

@@ -19,6 +19,7 @@ SAMPLE_RESPONSE_PATH = Path(__file__).resolve().parents[2] / "samples" / "sample
 @pytest.fixture(scope="module")
 def client():
     with TestClient(app) as c:
+        c.post("/api/v1/efs/sample_analysis_001")
         yield c
 
 

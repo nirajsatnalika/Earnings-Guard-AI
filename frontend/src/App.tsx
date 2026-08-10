@@ -8,6 +8,7 @@ import { EFSAssessmentPage } from './pages/EFSAssessmentPage'
 import { CompareCompanies } from './pages/CompareCompanies'
 import { PlaceholderPage } from './pages/PlaceholderPage'
 import { History } from './pages/History'
+import { CompanyPage } from './pages/CompanyPage'
 import { Watchlist } from './pages/Watchlist'
 import { Reports } from './pages/Reports'
 import { EFSReportPage } from './pages/EFSReportPage'
@@ -32,6 +33,8 @@ function App() {
               <Route path="/assessments/:analysisId/report" element={<EFSReportPage />} />
               <Route path="/results/pillar/:pillarId" element={<PlaceholderPage />} />
               <Route path="/history" element={<History />} />
+              <Route path="/assessments" element={<History />} />
+              <Route path="/companies/:companyId" element={<CompanyPage />} />
               <Route path="/compare" element={<CompareCompanies />} />
               <Route path="/watchlist" element={<Watchlist />} />
               <Route path="/reports" element={<Reports />} />

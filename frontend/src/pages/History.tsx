@@ -1,9 +1,240 @@
-import { DeleteOutline, FilterList, PlayArrow, Search, VisibilityOutlined } from '@mui/icons-material'
-import { Box, Button, Card, CardContent, Chip, IconButton, InputAdornment, Pagination, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, TextField, Typography } from '@mui/material'
-import { useState } from 'react'
-import { ConfirmDialog, EmptyState } from '../components/feedback/FeedbackComponents'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  Box, Button, Card, CardContent, Chip, CircularProgress,
+  IconButton, InputAdornment, Pagination, Stack, Table,
+  TableBody, TableCell, TableContainer, TableHead, TableRow,
+  TextField, Tooltip, Typography, Alert
+} from '@mui/material'
+import {
+  FilterList, OpenInNew, Refresh, Search, VisibilityOutlined
+} from '@mui/icons-material'
+import { EmptyState } from '../components/feedback/FeedbackComponents'
+import { AssessmentService } from '../services/api/assessmentService'
+import type { AssessmentListItem } from '../types/efs'
 
-interface HistoryItem { id: number; company: string; ticker: string; date: string; score: number; rating: string; risk: string; status: string }
-const initialRows: HistoryItem[] = [{ id: 1, company: 'Infosys Ltd.', ticker: 'INFY', date: '22 Jul 2026', score: 84, rating: 'AA', risk: 'Low', status: 'Completed' }, { id: 2, company: 'TCS', ticker: 'TCS', date: '18 Jul 2026', score: 81, rating: 'AA', risk: 'Low', status: 'Completed' }, { id: 3, company: 'HCL Technologies', ticker: 'HCLTECH', date: '12 Jul 2026', score: 77, rating: 'A', risk: 'Moderate', status: 'Completed' }, { id: 4, company: 'Wipro', ticker: 'WIPRO', date: '08 Jul 2026', score: 73, rating: 'A', risk: 'Moderate', status: 'Completed' }, { id: 5, company: 'Reliance Industries', ticker: 'RELIANCE', date: '03 Jul 2026', score: 78, rating: 'A', risk: 'Low', status: 'Completed' }]
-export function History() { const [rows, setRows] = useState(initialRows); const [query, setQuery] = useState(''); const [deleteId, setDeleteId] = useState<number | null>(null); const filtered = rows.filter((row) => `${row.company} ${row.ticker}`.toLowerCase().includes(query.toLowerCase())); return <Page title="Analysis history" subtitle="Review, revisit, and rerun your previous forensic analyses."><Card><CardContent sx={{ p: 0 }}><Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1.5} sx={{ p: 2.5 }}><TextField size="small" placeholder="Search analyses" value={query} onChange={(event) => setQuery(event.target.value)} InputProps={{ startAdornment: <InputAdornment position="start"><Search fontSize="small" /></InputAdornment> }} /><Button variant="outlined" startIcon={<FilterList />}>Filter</Button></Stack>{filtered.length ? <><TableContainer><Table size="small"><TableHead><TableRow>{['COMPANY', 'TICKER', 'DATE', 'EFS SCORE', 'RATING', 'RISK', 'STATUS', 'ACTIONS'].map((head) => <TableCell key={head}>{head}</TableCell>)}</TableRow></TableHead><TableBody>{filtered.map((row) => <TableRow key={row.id}><TableCell sx={{ fontWeight: 700 }}>{row.company}</TableCell><TableCell>{row.ticker}</TableCell><TableCell>{row.date}</TableCell><TableCell sx={{ fontWeight: 800 }}>{row.score}</TableCell><TableCell><Chip label={row.rating} color="success" size="small" variant="outlined" /></TableCell><TableCell><Chip label={row.risk} color={row.risk === 'Low' ? 'success' : 'warning'} size="small" variant="outlined" /></TableCell><TableCell><Chip label={row.status} color="success" size="small" /></TableCell><TableCell><Stack direction="row"><IconButton size="small" aria-label="View"><VisibilityOutlined fontSize="small" /></IconButton><IconButton size="small" aria-label="Re-run"><PlayArrow fontSize="small" /></IconButton><IconButton size="small" color="error" aria-label="Delete" onClick={() => setDeleteId(row.id)}><DeleteOutline fontSize="small" /></IconButton></Stack></TableCell></TableRow>)}</TableBody></Table></TableContainer><Stack alignItems="center" sx={{ p: 2 }}><Pagination count={3} page={1} /></Stack></> : <Box sx={{ p: 2 }}><EmptyState variant="history" /></Box>}</CardContent></Card><ConfirmDialog open={deleteId !== null} title="Delete analysis?" message="This analysis will be removed from your history." onCancel={() => setDeleteId(null)} onConfirm={() => { setRows((current) => current.filter((row) => row.id !== deleteId)); setDeleteId(null) }} /></Page> }
-function Page({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) { return <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1400, mx: 'auto' }}><Typography variant="h1">{title}</Typography><Typography color="text.secondary" sx={{ mt: .5, mb: 3.5 }}>{subtitle}</Typography>{children}</Box> }
+export function History() {
+  const navigate = useNavigate()
+  const [items, setItems] = useState<AssessmentListItem[]>([])
+  const [total, setTotal] = useState(0)
+  const [page, setPage] = useState(1)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [query, setQuery] = useState('')
+  const limit = 20
+
+  const fetchAssessments = async (p: number) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await AssessmentService.listAssessments(p, limit)
+      setItems(data.items)
+      setTotal(data.total)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load assessment history')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchAssessments(page)
+  }, [page])
+
+  const filtered = items.filter((row) =>
+    `${row.analysis_id} ${row.assessment_status}`.toLowerCase().includes(query.toLowerCase())
+  )
+
+  const totalPages = Math.max(1, Math.ceil(total / limit))
+
+  const scoreDisplay = (item: AssessmentListItem) => {
+    if (item.score_status === 'CALIBRATION_PENDING') {
+      return (
+        <Chip
+          label="Calibration Pending"
+          size="small"
+          variant="outlined"
+          sx={{ fontSize: '0.7rem', color: 'warning.main', borderColor: 'warning.main' }}
+        />
+      )
+    }
+    if (item.overall_score !== null) {
+      return <Typography variant="body2" fontWeight={800}>{item.overall_score.toFixed(1)}</Typography>
+    }
+    return <Typography variant="body2" color="text.secondary">—</Typography>
+  }
+
+  const statusColor = (status: string) => {
+    if (status === 'COMPLETED') return 'success'
+    if (status === 'RUNNING') return 'info'
+    if (status === 'FAILED') return 'error'
+    return 'default'
+  }
+
+  const confidenceDisplay = (item: AssessmentListItem) => {
+    if (item.confidence_score === null) return '—'
+    return `${item.confidence_score.toFixed(0)}% (${item.confidence_level || ''})`
+  }
+
+  const formatDate = (iso: string | null) => {
+    if (!iso) return '—'
+    return new Date(iso).toLocaleDateString('en-GB', {
+      day: '2-digit', month: 'short', year: 'numeric',
+    })
+  }
+
+  return (
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1400, mx: 'auto' }}>
+      <Stack direction="row" justifyContent="space-between" alignItems="flex-start" sx={{ mb: 3 }}>
+        <Box>
+          <Typography variant="h1">Assessment History</Typography>
+          <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+            Persisted EFS™ forensic assessments — immutable snapshots from Neon PostgreSQL.
+          </Typography>
+        </Box>
+        <Tooltip title="Refresh">
+          <IconButton onClick={() => fetchAssessments(page)} disabled={loading}>
+            <Refresh />
+          </IconButton>
+        </Tooltip>
+      </Stack>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+      )}
+
+      <Card>
+        <CardContent sx={{ p: 0 }}>
+          <Stack
+            direction={{ xs: 'column', sm: 'row' }}
+            justifyContent="space-between"
+            spacing={1.5}
+            sx={{ p: 2.5 }}
+          >
+            <TextField
+              size="small"
+              placeholder="Filter by analysis ID or status"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search fontSize="small" />
+                  </InputAdornment>
+                ),
+              }}
+              sx={{ minWidth: 280 }}
+            />
+            <Button variant="outlined" startIcon={<FilterList />}>Filter</Button>
+          </Stack>
+
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress />
+            </Box>
+          ) : filtered.length === 0 ? (
+            <Box sx={{ p: 4 }}>
+              <EmptyState variant="history" />
+            </Box>
+          ) : (
+            <>
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      {[
+                        'ANALYSIS ID', 'STATUS', 'EFS SCORE', 'RISK LEVEL',
+                        'CONFIDENCE', 'RULES TRIGGERED', 'EFS VERSION', 'DATE', 'ACTIONS'
+                      ].map((head) => (
+                        <TableCell key={head} sx={{ fontWeight: 700, fontSize: '0.7rem', letterSpacing: 0.5 }}>
+                          {head}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {filtered.map((row) => (
+                      <TableRow
+                        key={row.id}
+                        hover
+                        sx={{ cursor: 'pointer' }}
+                        onClick={() => navigate(`/assessments/${row.analysis_id}`)}
+                      >
+                        <TableCell sx={{ fontWeight: 700, fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                          {row.analysis_id}
+                        </TableCell>
+                        <TableCell>
+                          <Chip
+                            label={row.assessment_status}
+                            color={statusColor(row.assessment_status) as any}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>{scoreDisplay(row)}</TableCell>
+                        <TableCell>
+                          <Typography variant="body2" color="text.secondary">
+                            {row.risk_level || '—'}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">{confidenceDisplay(row)}</Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2" fontWeight={700}>
+                            {row.rules_triggered ?? '—'}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Chip label={`v${row.efs_version}`} size="small" variant="outlined" />
+                        </TableCell>
+                        <TableCell>
+                          <Typography variant="body2">
+                            {formatDate(row.completed_at || row.created_at)}
+                          </Typography>
+                        </TableCell>
+                        <TableCell>
+                          <Stack direction="row" onClick={(e) => e.stopPropagation()}>
+                            <Tooltip title="View assessment detail">
+                              <IconButton
+                                size="small"
+                                onClick={() => navigate(`/assessments/${row.analysis_id}`)}
+                              >
+                                <VisibilityOutlined fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                            <Tooltip title="View report">
+                              <IconButton
+                                size="small"
+                                onClick={() => navigate(`/assessments/${row.analysis_id}/report`)}
+                              >
+                                <OpenInNew fontSize="small" />
+                              </IconButton>
+                            </Tooltip>
+                          </Stack>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+
+              <Stack alignItems="center" sx={{ p: 2 }}>
+                <Pagination
+                  count={totalPages}
+                  page={page}
+                  onChange={(_, p) => setPage(p)}
+                  color="primary"
+                />
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                  {total} total assessment{total !== 1 ? 's' : ''}
+                </Typography>
+              </Stack>
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </Box>
+  )
+}

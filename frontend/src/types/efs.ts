@@ -175,3 +175,52 @@ export interface EFSRequestPayload {
   ratio_output?: Record<string, any>
   feature_output?: Record<string, any>
 }
+
+export interface AssessmentListItem {
+  id: string
+  analysis_id: string
+  company_id: string
+  assessment_status: 'DRAFT' | 'RUNNING' | 'COMPLETED' | 'FAILED'
+  score_status: 'CALIBRATION_PENDING' | 'COMPLETED'
+  overall_score: number | null
+  risk_level: string | null
+  confidence_score: number | null
+  confidence_level: string | null
+  rules_triggered: number | null
+  variables_evaluated: number | null
+  efs_version: string
+  methodology_version: string
+  created_at: string
+  completed_at: string | null
+  input_snapshot_hash: string | null
+  assessment_snapshot_hash: string | null
+}
+
+export interface AssessmentListResponse {
+  items: AssessmentListItem[]
+  total: number
+  page: number
+  limit: number
+}
+
+export interface CompanyRecord {
+  id: string
+  legal_name: string
+  display_name: string | null
+  ticker: string | null
+  exchange: string | null
+  country: string | null
+  industry: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface CompanyCreateRequest {
+  legal_name: string
+  display_name?: string
+  ticker?: string
+  exchange?: string
+  country?: string
+  industry?: string
+}
+

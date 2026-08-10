@@ -13,6 +13,8 @@ from app.core.exceptions import (
 )
 from app.core.logging import configure_logging, get_logger
 
+from app.database.database import init_db
+
 configure_logging()
 logger = get_logger(__name__)
 
@@ -20,6 +22,7 @@ logger = get_logger(__name__)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings.ensure_upload_dir()
+    init_db()
     logger.info("%s backend starting up", settings.PROJECT_NAME)
     yield
     logger.info("%s backend shutting down", settings.PROJECT_NAME)
