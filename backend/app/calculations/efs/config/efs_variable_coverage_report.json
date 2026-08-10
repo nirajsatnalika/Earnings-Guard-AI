@@ -1,0 +1,1828 @@
+{
+  "efs_version": "1.0",
+  "total_variables": 95,
+  "summary_counts": {
+    "IMPLEMENTED": 11,
+    "PARTIAL": 57,
+    "SOURCE_DATA_REQUIRED": 10,
+    "DISCLOSURE_REQUIRED": 17,
+    "NOT_IMPLEMENTED": 0,
+    "tested_count": 12,
+    "untested_count": 83
+  },
+  "variables": [
+    {
+      "variable_id": "AQ01",
+      "variable_name": "Total Accruals",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "PAT − CFO",
+      "actual_implementation_function": "VariableCalculationEngine._compute_formula_fallback",
+      "formula_implemented": true,
+      "source_fields_required": [
+        "pat",
+        "cfo",
+        "total_assets"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": true,
+      "missing_data_handled": true,
+      "test_exists": true,
+      "test_reference": "tests/test_variable_coverage.py",
+      "calculation_status": "IMPLEMENTED",
+      "notes": "Explicit mathematical formula implementation exists in _compute_formula_fallback and is verified by automated unit tests."
+    },
+    {
+      "variable_id": "AQ02",
+      "variable_name": "Total Accruals / Average Assets",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "(PAT − CFO) / Average Assets",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "aq02",
+        "total_accruals__per__average_assets"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "AQ03",
+      "variable_name": "Sloan Accrual Ratio",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "Sloan accrual measure",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "aq03",
+        "sloan_accrual_ratio"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "AQ04",
+      "variable_name": "Working Capital Accruals / Assets",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "WC accruals / Average Assets",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "aq04",
+        "working_capital_accruals__per__assets"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "AQ05",
+      "variable_name": "Non-Cash Earnings Ratio",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "(PAT − CFO) / PAT",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "aq05",
+        "non_cash_earnings_ratio"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "AQ06",
+      "variable_name": "Accrual Trend",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "Multi-year accrual/assets trend",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "aq06",
+        "accrual_trend"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "AQ07",
+      "variable_name": "Accrual Volatility",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "SD(accrual/assets)",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "aq07",
+        "accrual_volatility"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "AQ08",
+      "variable_name": "Change in Net Operating Assets",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "ΔNOA / Average Assets",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "aq08",
+        "change_in_net_operating_assets"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "AQ09",
+      "variable_name": "Accruals vs Revenue Growth",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "Accrual growth − Revenue growth",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "aq09",
+        "accruals_vs_revenue_growth"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "AQ10",
+      "variable_name": "Accruals vs CFO Divergence",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "Change in accruals vs change in CFO",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "aq10",
+        "accruals_vs_cfo_divergence"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "AQ11",
+      "variable_name": "Depreciation / CapEx",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "D&A / CapEx",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "aq11",
+        "depreciation__per__capex"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "AQ12",
+      "variable_name": "D&A / Gross PPE",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "D&A / Average Gross PPE",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "aq12",
+        "danda__per__gross_ppe"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "AQ13",
+      "variable_name": "Deferred Tax Contribution to PAT",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "Deferred tax effect / PAT",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "aq13",
+        "deferred_tax_contribution_to_pat"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "AQ14",
+      "variable_name": "Provision / Expense Ratio",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "Provision expense / Relevant expense",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "aq14",
+        "provision__per__expense_ratio"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "AQ15",
+      "variable_name": "Reserve Reversal Contribution",
+      "pillar": "Accrual & Accounting Quality",
+      "methodology_formula": "Reserve reversals / PAT",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "aq15",
+        "reserve_reversal_contribution"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "BSI01",
+      "variable_name": "Asset Growth",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "YoY Asset Growth",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "bsi01",
+        "asset_growth"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": true,
+      "test_reference": "tests/test_variable_coverage.py",
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "BSI02",
+      "variable_name": "AQI",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "Beneish Asset Quality Index",
+      "actual_implementation_function": "VariableCalculationEngine._compute_formula_fallback",
+      "formula_implemented": true,
+      "source_fields_required": [
+        "total_assets",
+        "prior_total_assets"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": true,
+      "missing_data_handled": true,
+      "test_exists": true,
+      "test_reference": "tests/test_variable_coverage.py, tests/test_model_verification.py",
+      "calculation_status": "IMPLEMENTED",
+      "notes": "Explicit mathematical formula implementation exists in _compute_formula_fallback and is verified by automated unit tests."
+    },
+    {
+      "variable_id": "BSI03",
+      "variable_name": "Intangibles / Assets",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "Intangibles / Assets",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "bsi03",
+        "intangibles__per__assets"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "BSI04",
+      "variable_name": "Goodwill / Assets",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "Goodwill / Assets",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "bsi04",
+        "goodwill__per__assets"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "BSI05",
+      "variable_name": "Capitalized Development Costs / Assets",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "Capitalized development / Assets",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "bsi05",
+        "capitalized_development_costs__per__assets"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "BSI06",
+      "variable_name": "Capitalized Software / Revenue",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "Capitalized software / Revenue",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "bsi06",
+        "capitalized_software__per__revenue"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "BSI07",
+      "variable_name": "PPE Growth vs Revenue Growth",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "PPE growth − Revenue growth",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "bsi07",
+        "ppe_growth_vs_revenue_growth"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "BSI08",
+      "variable_name": "CapEx / Depreciation",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "CapEx / D&A",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "bsi08",
+        "capex__per__depreciation"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "BSI09",
+      "variable_name": "Debt Growth vs Asset Growth",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "Debt growth − Asset growth",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "bsi09",
+        "debt_growth_vs_asset_growth"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "BSI10",
+      "variable_name": "Off-Balance-Sheet Exposure",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "Disclosed exposure / Assets",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "bsi10",
+        "off_balance_sheet_exposure"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "BSI11",
+      "variable_name": "Contingent Liabilities / Equity",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "Contingent liabilities / Equity",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "bsi11",
+        "contingent_liabilities__per__equity"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "BSI12",
+      "variable_name": "Lease Liabilities / Assets",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "Lease liabilities / Assets",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "bsi12",
+        "lease_liabilities__per__assets"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "BSI13",
+      "variable_name": "Pension / Post-Employment Deficit",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "Net obligation / Equity",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "bsi13",
+        "pension__per__post_employment_deficit"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "BSI14",
+      "variable_name": "Asset Impairment Reversals / PAT",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "Impairment reversals / PAT",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "bsi14",
+        "asset_impairment_reversals__per__pat"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "BSI15",
+      "variable_name": "Asset-to-Revenue Divergence",
+      "pillar": "Balance Sheet Integrity",
+      "methodology_formula": "Asset growth − Revenue growth",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "bsi15",
+        "asset_to_revenue_divergence"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "CFI01",
+      "variable_name": "CFO / PAT",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "CFO / PAT",
+      "actual_implementation_function": "VariableCalculationEngine._compute_formula_fallback",
+      "formula_implemented": true,
+      "source_fields_required": [
+        "cfo",
+        "pat"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": true,
+      "missing_data_handled": true,
+      "test_exists": true,
+      "test_reference": "tests/test_variable_coverage.py",
+      "calculation_status": "IMPLEMENTED",
+      "notes": "Explicit mathematical formula implementation exists in _compute_formula_fallback and is verified by automated unit tests."
+    },
+    {
+      "variable_id": "CFI02",
+      "variable_name": "CFO / EBITDA",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "CFO / EBITDA",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "cfi02",
+        "cfo__per__ebitda"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "CFI03",
+      "variable_name": "CFO Margin",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "CFO / Revenue",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "cfi03",
+        "cfo_margin"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "CFI04",
+      "variable_name": "Free Cash Flow",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "CFO − CapEx",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "cfi04",
+        "free_cash_flow"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "CFI05",
+      "variable_name": "FCF Margin",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "FCF / Revenue",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "cfi05",
+        "fcf_margin"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "CFI06",
+      "variable_name": "CFO Growth vs PAT Growth",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "CFO growth − PAT growth",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "cfi06",
+        "cfo_growth_vs_pat_growth"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "CFI07",
+      "variable_name": "CFO Volatility",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "SD(CFO / Revenue)",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "cfi07",
+        "cfo_volatility"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "CFI08",
+      "variable_name": "Cash Interest Coverage",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "CFO / Cash Interest",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "cfi08",
+        "cash_interest_coverage"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "CFI09",
+      "variable_name": "Cash Tax / Tax Expense",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "Cash taxes / Tax expense",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "cfi09",
+        "cash_tax__per__tax_expense"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "CFI10",
+      "variable_name": "CFO Less CapEx / PAT",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "(CFO − CapEx) / PAT",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "cfi10",
+        "cfo_less_capex__per__pat"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "CFI11",
+      "variable_name": "Cash Conversion Trend",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "Multi-year CFO/PAT trend",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "cfi11",
+        "cash_conversion_trend"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "CFI12",
+      "variable_name": "Working Capital Contribution to CFO",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "WC contribution / CFO",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "cfi12",
+        "working_capital_contribution_to_cfo"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "CFI13",
+      "variable_name": "Non-Cash Operating Items / CFO",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "Non-cash adjustments / CFO",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "cfi13",
+        "non_cash_operating_items__per__cfo"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "CFI14",
+      "variable_name": "CFO / EBITDA Trend",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "Multi-year CFO/EBITDA trend",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "cfi14",
+        "cfo__per__ebitda_trend"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "CFI15",
+      "variable_name": "Investing Cash Flow Anomaly",
+      "pillar": "Cash Flow Integrity",
+      "methodology_formula": "Unusual investing CF vs history",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "cfi15",
+        "investing_cash_flow_anomaly"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "FSQ01",
+      "variable_name": "Revenue Growth",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "YoY Revenue Growth",
+      "actual_implementation_function": "VariableCalculationEngine._compute_formula_fallback",
+      "formula_implemented": true,
+      "source_fields_required": [
+        "revenue",
+        "prior_revenue"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": true,
+      "missing_data_handled": true,
+      "test_exists": true,
+      "test_reference": "tests/test_efs_engine.py, tests/test_variable_coverage.py, tests/test_rule_engine_edge_cases.py",
+      "calculation_status": "IMPLEMENTED",
+      "notes": "Explicit mathematical formula implementation exists in _compute_formula_fallback and is verified by automated unit tests."
+    },
+    {
+      "variable_id": "FSQ02",
+      "variable_name": "Receivables Growth vs Revenue Growth",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "AR growth − Revenue growth",
+      "actual_implementation_function": "VariableCalculationEngine._compute_formula_fallback",
+      "formula_implemented": true,
+      "source_fields_required": [
+        "revenue",
+        "prior_revenue",
+        "accounts_receivable",
+        "prior_accounts_receivable"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": true,
+      "missing_data_handled": true,
+      "test_exists": true,
+      "test_reference": "tests/test_variable_coverage.py, tests/test_rule_engine_edge_cases.py",
+      "calculation_status": "IMPLEMENTED",
+      "notes": "Explicit mathematical formula implementation exists in _compute_formula_fallback and is verified by automated unit tests."
+    },
+    {
+      "variable_id": "FSQ03",
+      "variable_name": "DSRI",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "Beneish Days Sales in Receivables Index",
+      "actual_implementation_function": "VariableCalculationEngine._compute_formula_fallback",
+      "formula_implemented": true,
+      "source_fields_required": [
+        "revenue",
+        "prior_revenue",
+        "accounts_receivable",
+        "prior_accounts_receivable"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": true,
+      "missing_data_handled": true,
+      "test_exists": true,
+      "test_reference": "tests/test_efs_engine.py, tests/test_variable_coverage.py, tests/test_model_verification.py, tests/test_rule_engine_edge_cases.py",
+      "calculation_status": "IMPLEMENTED",
+      "notes": "Explicit mathematical formula implementation exists in _compute_formula_fallback and is verified by automated unit tests."
+    },
+    {
+      "variable_id": "FSQ04",
+      "variable_name": "Revenue Quality Ratio",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "CFO / Revenue",
+      "actual_implementation_function": "VariableCalculationEngine._compute_formula_fallback",
+      "formula_implemented": true,
+      "source_fields_required": [
+        "cfo",
+        "revenue"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": true,
+      "missing_data_handled": true,
+      "test_exists": true,
+      "test_reference": "tests/test_variable_coverage.py, tests/test_rule_engine_edge_cases.py",
+      "calculation_status": "IMPLEMENTED",
+      "notes": "Explicit mathematical formula implementation exists in _compute_formula_fallback and is verified by automated unit tests."
+    },
+    {
+      "variable_id": "FSQ05",
+      "variable_name": "Gross Margin Change",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "Current GM − Prior GM",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "fsq05",
+        "gross_margin_change"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "FSQ06",
+      "variable_name": "Operating Margin Change",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "Current OM − Prior OM",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "fsq06",
+        "operating_margin_change"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "FSQ07",
+      "variable_name": "Net Margin Change",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "Current NM − Prior NM",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "fsq07",
+        "net_margin_change"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "FSQ08",
+      "variable_name": "Other Income / PAT",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "Other Income / PAT",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "fsq08",
+        "other_income__per__pat"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "FSQ09",
+      "variable_name": "Exceptional Items / PAT",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "Exceptional Items / PAT",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "fsq09",
+        "exceptional_items__per__pat"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "FSQ10",
+      "variable_name": "Tax Rate Anomaly",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "Current ETR vs historical baseline",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "fsq10",
+        "tax_rate_anomaly"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "FSQ11",
+      "variable_name": "Earnings vs Revenue Divergence",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "PAT growth − Revenue growth",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "fsq11",
+        "earnings_vs_revenue_divergence"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "FSQ12",
+      "variable_name": "EPS vs PAT Divergence",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "EPS growth vs PAT growth",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "fsq12",
+        "eps_vs_pat_divergence"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "FSQ13",
+      "variable_name": "Revenue Concentration",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "Top customer revenue / Total revenue",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "fsq13",
+        "revenue_concentration"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "FSQ14",
+      "variable_name": "Contract Liabilities / Revenue",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "Contract liabilities / Revenue",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "fsq14",
+        "contract_liabilities__per__revenue"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "FSQ15",
+      "variable_name": "Deferred Revenue Change",
+      "pillar": "Financial Statement Quality",
+      "methodology_formula": "YoY deferred revenue change",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "fsq15",
+        "deferred_revenue_change"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "GD01",
+      "variable_name": "Qualified Audit Opinion",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "methodology_formula": "Auditor opinion indicator",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gd01",
+        "qualified_audit_opinion"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "GD02",
+      "variable_name": "Key Audit Matter Severity",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "methodology_formula": "Revenue/estimate/impairment KAM assessment",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gd02",
+        "key_audit_matter_severity"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "GD03",
+      "variable_name": "Auditor Change",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "methodology_formula": "Auditor change + stated reason",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gd03",
+        "auditor_change"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "GD04",
+      "variable_name": "Audit Tenure / Rotation Anomaly",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "methodology_formula": "Tenure/rotation indicator",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gd04",
+        "audit_tenure__per__rotation_anomaly"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "GD05",
+      "variable_name": "Related Party Transactions / Revenue",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "methodology_formula": "Material RPTs / Revenue",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gd05",
+        "related_party_transactions__per__revenue"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "GD06",
+      "variable_name": "Promoter / Insider Pledge",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "methodology_formula": "Pledged shares / Holdings",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gd06",
+        "promoter__per__insider_pledge"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "GD07",
+      "variable_name": "Accounting Policy Change",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "methodology_formula": "Material policy-change indicator",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gd07",
+        "accounting_policy_change"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "GD08",
+      "variable_name": "Restatement / Prior Period Adjustments",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "methodology_formula": "Count + materiality",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gd08",
+        "restatement__per__prior_period_adjustments"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "GD09",
+      "variable_name": "Regulatory / Enforcement Action",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "methodology_formula": "Reporting-related enforcement indicator",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gd09",
+        "regulatory__per__enforcement_action"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "GD10",
+      "variable_name": "Litigation / Accounting Contingency Exposure",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "methodology_formula": "Relevant litigation / Equity",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gd10",
+        "litigation__per__accounting_contingency_exposure"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "GS01",
+      "variable_name": "Revenue CAGR",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "methodology_formula": "Multi-year revenue CAGR",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gs01",
+        "revenue_cagr"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "SOURCE_DATA_REQUIRED",
+      "notes": "Multi-year CAGR or growth trend formula requires multi-period historical financial statement series."
+    },
+    {
+      "variable_id": "GS02",
+      "variable_name": "PAT CAGR",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "methodology_formula": "Multi-year PAT CAGR",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gs02",
+        "pat_cagr"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "SOURCE_DATA_REQUIRED",
+      "notes": "Multi-year CAGR or growth trend formula requires multi-period historical financial statement series."
+    },
+    {
+      "variable_id": "GS03",
+      "variable_name": "EBITDA CAGR",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "methodology_formula": "Multi-year EBITDA CAGR",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gs03",
+        "ebitda_cagr"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "SOURCE_DATA_REQUIRED",
+      "notes": "Multi-year CAGR or growth trend formula requires multi-period historical financial statement series."
+    },
+    {
+      "variable_id": "GS04",
+      "variable_name": "Revenue Growth vs CFO Growth",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "methodology_formula": "Revenue growth − CFO growth",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gs04",
+        "revenue_growth_vs_cfo_growth"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "SOURCE_DATA_REQUIRED",
+      "notes": "Multi-year CAGR or growth trend formula requires multi-period historical financial statement series."
+    },
+    {
+      "variable_id": "GS05",
+      "variable_name": "Revenue Growth vs WC Growth",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "methodology_formula": "Revenue growth − WC growth",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gs05",
+        "revenue_growth_vs_wc_growth"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "SOURCE_DATA_REQUIRED",
+      "notes": "Multi-year CAGR or growth trend formula requires multi-period historical financial statement series."
+    },
+    {
+      "variable_id": "GS06",
+      "variable_name": "Margin Sustainability",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "methodology_formula": "Multi-year margin trend/volatility",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gs06",
+        "margin_sustainability"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "SOURCE_DATA_REQUIRED",
+      "notes": "Multi-year CAGR or growth trend formula requires multi-period historical financial statement series."
+    },
+    {
+      "variable_id": "GS07",
+      "variable_name": "ROIC / ROCE Trend",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "methodology_formula": "Multi-year operating return trend",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gs07",
+        "roic__per__roce_trend"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "SOURCE_DATA_REQUIRED",
+      "notes": "Multi-year CAGR or growth trend formula requires multi-period historical financial statement series."
+    },
+    {
+      "variable_id": "GS08",
+      "variable_name": "Earnings Persistence",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "methodology_formula": "Persistence of recurring operating earnings",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gs08",
+        "earnings_persistence"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "SOURCE_DATA_REQUIRED",
+      "notes": "Multi-year CAGR or growth trend formula requires multi-period historical financial statement series."
+    },
+    {
+      "variable_id": "GS09",
+      "variable_name": "Growth Funding Gap",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "methodology_formula": "Growth cash needs vs CFO/FCF",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gs09",
+        "growth_funding_gap"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "SOURCE_DATA_REQUIRED",
+      "notes": "Multi-year CAGR or growth trend formula requires multi-period historical financial statement series."
+    },
+    {
+      "variable_id": "GS10",
+      "variable_name": "Organic vs Acquired Growth",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "methodology_formula": "Organic vs total growth",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "gs10",
+        "organic_vs_acquired_growth"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "SOURCE_DATA_REQUIRED",
+      "notes": "Multi-year CAGR or growth trend formula requires multi-period historical financial statement series."
+    },
+    {
+      "variable_id": "WCH01",
+      "variable_name": "DSO",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "Average AR / Revenue × 365",
+      "actual_implementation_function": "VariableCalculationEngine._compute_formula_fallback",
+      "formula_implemented": true,
+      "source_fields_required": [
+        "accounts_receivable",
+        "revenue"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": true,
+      "missing_data_handled": true,
+      "test_exists": true,
+      "test_reference": "tests/test_variable_coverage.py, tests/test_rule_engine_edge_cases.py",
+      "calculation_status": "IMPLEMENTED",
+      "notes": "Explicit mathematical formula implementation exists in _compute_formula_fallback and is verified by automated unit tests."
+    },
+    {
+      "variable_id": "WCH02",
+      "variable_name": "DSO Change",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "Current DSO − Prior DSO",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "wch02",
+        "dso_change"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "WCH03",
+      "variable_name": "Receivables / Revenue",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "AR / Revenue",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "wch03",
+        "receivables__per__revenue"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "WCH04",
+      "variable_name": "Inventory Days",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "Average Inventory / COGS × 365",
+      "actual_implementation_function": "VariableCalculationEngine._compute_formula_fallback",
+      "formula_implemented": true,
+      "source_fields_required": [
+        "inventory",
+        "cogs"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": true,
+      "missing_data_handled": true,
+      "test_exists": true,
+      "test_reference": "tests/test_variable_coverage.py",
+      "calculation_status": "IMPLEMENTED",
+      "notes": "Explicit mathematical formula implementation exists in _compute_formula_fallback and is verified by automated unit tests."
+    },
+    {
+      "variable_id": "WCH05",
+      "variable_name": "Inventory Growth vs Revenue Growth",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "Inventory growth − Revenue growth",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "wch05",
+        "inventory_growth_vs_revenue_growth"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "WCH06",
+      "variable_name": "Inventory Turnover",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "COGS / Average Inventory",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "wch06",
+        "inventory_turnover"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "WCH07",
+      "variable_name": "DPO",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "Average AP / COGS × 365",
+      "actual_implementation_function": "VariableCalculationEngine._compute_formula_fallback",
+      "formula_implemented": true,
+      "source_fields_required": [
+        "accounts_payable",
+        "cogs"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": true,
+      "missing_data_handled": true,
+      "test_exists": true,
+      "test_reference": "tests/test_variable_coverage.py",
+      "calculation_status": "IMPLEMENTED",
+      "notes": "Explicit mathematical formula implementation exists in _compute_formula_fallback and is verified by automated unit tests."
+    },
+    {
+      "variable_id": "WCH08",
+      "variable_name": "Payables Growth vs COGS Growth",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "AP growth − COGS growth",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "wch08",
+        "payables_growth_vs_cogs_growth"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "WCH09",
+      "variable_name": "Cash Conversion Cycle",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "DSO + DIO − DPO",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "wch09",
+        "cash_conversion_cycle"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "WCH10",
+      "variable_name": "Operating WC / Revenue",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "Operating WC / Revenue",
+      "actual_implementation_function": "VariableCalculationEngine._compute_formula_fallback",
+      "formula_implemented": true,
+      "source_fields_required": [
+        "accounts_receivable",
+        "inventory",
+        "accounts_payable",
+        "revenue",
+        "cogs"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": true,
+      "missing_data_handled": true,
+      "test_exists": true,
+      "test_reference": "tests/test_variable_coverage.py",
+      "calculation_status": "IMPLEMENTED",
+      "notes": "Explicit mathematical formula implementation exists in _compute_formula_fallback and is verified by automated unit tests."
+    },
+    {
+      "variable_id": "WCH11",
+      "variable_name": "WC Growth vs Revenue Growth",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "WC growth − Revenue growth",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "wch11",
+        "wc_growth_vs_revenue_growth"
+      ],
+      "historical_periods_required": 2,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "PARTIAL",
+      "notes": "Parameter resolution via dict/snake_case lookup exists in _resolve_variable_value, but direct formula calculation from fundamental statements is not coded as a standalone arithmetic fallback."
+    },
+    {
+      "variable_id": "WCH12",
+      "variable_name": "Receivable Concentration Risk",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "Major customer/receivable concentration",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "wch12",
+        "receivable_concentration_risk"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "WCH13",
+      "variable_name": "Inventory Provision Coverage",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "Inventory provision / Gross inventory",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "wch13",
+        "inventory_provision_coverage"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "WCH14",
+      "variable_name": "Contract Asset / Revenue",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "Contract assets / Revenue",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "wch14",
+        "contract_asset__per__revenue"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    },
+    {
+      "variable_id": "WCH15",
+      "variable_name": "Supplier Financing Indicators",
+      "pillar": "Working Capital Forensics",
+      "methodology_formula": "Supplier-finance liabilities / Payables",
+      "actual_implementation_function": "VariableCalculationEngine._resolve_variable_value",
+      "formula_implemented": false,
+      "source_fields_required": [
+        "wch15",
+        "supplier_financing_indicators"
+      ],
+      "historical_periods_required": 1,
+      "fallback_available": false,
+      "missing_data_handled": true,
+      "test_exists": false,
+      "test_reference": null,
+      "calculation_status": "DISCLOSURE_REQUIRED",
+      "notes": "Requires qualitative, footnote, or governance disclosure evidence rather than pure single-period statement arithmetic."
+    }
+  ]
+}

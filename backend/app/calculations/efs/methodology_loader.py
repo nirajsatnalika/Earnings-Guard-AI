@@ -65,7 +65,13 @@ class MethodologyLoader(IMethodologyLoader):
                 confidence_factors=thresholds_data.get("confidence_factors", {}),
                 registered_variables=variables_data.get("registered_variables", {}),
                 eligibility_rules=rules_data.get("eligibility_rules", {}),
-                evaluation_rules=rules_data.get("evaluation_rules", []),
+                evaluation_rules=rules_data.get("rules", []),
+                raw_config={
+                    "variables": variables_data,
+                    "rules": rules_data,
+                    "weights": weights_data,
+                    "thresholds": thresholds_data,
+                },
             )
 
             self._cache[version] = config

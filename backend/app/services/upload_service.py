@@ -15,6 +15,11 @@ from app.core.exceptions import EarningsGuardError
 from app.core.logging import get_logger
 from app.schemas.upload import UploadResponse, UploadedFileResponse
 
+class UploadValidationError(EarningsGuardError):
+    """Raised when uploaded file validation fails."""
+    pass
+
+
 logger = get_logger(__name__)
 
 # Field names expected by the multipart upload, mapped to a human statement label.

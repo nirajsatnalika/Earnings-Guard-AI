@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>EFS Assessment Report – {{ assessment.company_name or 'Company' }}</title>
+  <style>
+    @page { size: A4; margin: 1in; }
+    body { font-family: 'Inter', Arial, sans-serif; line-height: 1.5; color: #0f172a; }
+    h1, h2, h3 { color: #1e3a8a; margin-top: 1.5em; }
+    h1 { font-size: 24pt; text-align: center; }
+    h2 { font-size: 18pt; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; }
+    .section { page-break-inside: avoid; }
+    .table { width: 100%; border-collapse: collapse; margin-top: 0.5em; }
+    .table th, .table td { border: 1px solid #e2e8f0; padding: 4px 8px; font-size: 10pt; }
+    .table th { background: #f1f5f9; }
+    .footer { position: fixed; bottom: 0; left: 0; right: 0; text-align: center; font-size: 8pt; color: #64748b; }
+  </style>
+</head>
+<body>
+  <!-- 1. Cover Page -->
+  <section class="section" id="cover">
+    <h1>EarningsGuard™ AI</h1>
+    <h2>EFS™ Financial Forensics Assessment</h2>
+    <p><strong>Company:</strong> {{ assessment.company_name or 'N/A' }}</p>
+    <p><strong>Assessment ID:</strong> {{ assessment.assessment_id }}</p>
+    <p><strong>Assessment Date:</strong> {{ assessment.audit_trail.timestamp[:10] if assessment.audit_trail.timestamp else '' }}</p>
+    <p><strong>EFS Version:</strong> {{ assessment.efs_version }}</p>
+  </section>
+
+  <!-- 2. Executive Forensic Summary -->
+  <section class="section" id="executive-summary">
+    <h2>Executive Forensic Summary</h2>
+    <p><strong>Assessment Status:</strong> {{ assessment.status }}</p>
+    <p><strong>EFS Score:</strong> {% if assessment.overall.score is none or assessment.overall.score_status == 'CALIBRATION_PENDING' %}CALIBRATION PENDING{% else %}{{ assessment.overall.score }}{% endif %}</p>
+    <p><strong>Confidence:</strong> {{ assessment.overall.confidence }}%</p>
+    <p><strong>Variables Evaluated:</strong> {{ assessment.audit_trail.variables_evaluated }}</p>
+    <p><strong>Rules Evaluated:</strong> {{ assessment.audit_trail.rules_evaluated }}</p>
+    <p><strong>Rules Triggered:</strong> {{ assessment.audit_trail.rules_triggered }}</p>
+    <p><strong>Critical Findings:</strong> {{ assessment.red_flags|length }}</p>
+    <!-- Additional key signals placeholders -->
+    <p><strong>Key Positive Signals:</strong> {{ assessment.limitations|join(', ') }}</p>
+    <p><strong>Key Negative Signals:</strong> {{ assessment.limitations|join(', ') }}</p>
+    <p><strong>Major Data Limitations:</strong> {{ assessment.limitations|join(', ') }}</p>
+  </section>
+
+  <!-- 3. Calibration Notice -->
+  <section class="section" id="calibration-notice">
+    <h2>Calibration Notice</h2>
+    <p>The final weighted EFS™ score is pending empirical calibration. The deterministic analysis is complete, but a calibrated composite score will be released after rigorous validation across a broad dataset.</p>
+  </section>
+
+  <!-- 4. Seven‑Pillar Overview -->
+  <section class="section" id="pillars-overview">
+    <h2>Seven‑Pillar Overview</h2>
+    {% for pillar in assessment.pillars %}
+      <h3>{{ pillar.pillar_name }}</h3>
+      <p><strong>Evaluation Status:</strong> {{ pillar.status }}</p>
+      <p><strong>Variables Evaluated:</strong> {{ pillar.variables_evaluated }} / {{ pillar.variables_available }}</p>
+      <p><strong>Data Availability:</strong> {{ pillar.data_quality }}</p>
+      <p><strong>Positive Drivers:</strong> {{ pillar.key_positive_drivers|join(', ') }}</p>
+      <p><strong>Negative Drivers:</strong> {{ pillar.key_negative_drivers|join(', ') }}</p>
+    {% endfor %}
+  </section>
+
+  <!-- 5‑10. Detailed Pillar Analyses (simplified) -->
+  {% for pillar in assessment.pillars %}
+    <section class="section" id="pillar-{{ pillar.pillar_id }}">
+      <h2>{{ pillar.pillar_name }} – Detailed Analysis</h2>
+      <p><strong>Purpose:</strong> {{ pillar.pillar_name }} assessment of financial statement quality.</p>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Variable ID</th>
+            <th>Name</th>
+            <th>Value</th>
+            <th>Unit</th>
+            <th>Score</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for var in pillar.variables %}
+          <tr>
+            <td>{{ var.variable_id }}</td>
+            <td>{{ var.variable_name }}</td>
+            <td>{{ var.raw_value if var.raw_value is not none else '' }}</td>
+            <td>{{ var.unit or '' }}</td>
+            <td>{{ var.score if var.score is not none else '' }}</td>
+            <td>{{ var.data_status }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  {% endfor %}
+
+  <!-- 11. Established Models -->
+  <section class="section" id="established-models">
+    <h2>Established Models</h2>
+    {% set models = assessment.established_models %}
+    {% for model_name, model in models.items() %}
+      <h3>{{ model_name.replace('_', ' ')|title }}</h3>
+      <p><strong>Result:</strong> {{ model.score if model.score is not none else 'N/A' }}</p>
+      <p><strong>Signal / Zone:</strong> {{ model.risk_signal or model.zone or 'N/A' }}</p>
+      <p><strong>Role in EFS:</strong> {{ model.role if model.role else 'Supporting Evidence' }}</p>
+      <p><strong>Interpretation:</strong> {{ model.interpretation or '' }}</p>
+    {% endfor %}
+  </section>
+
+  <!-- 12. Forensic Findings -->
+  <section class="section" id="forensic-findings">
+    <h2>Forensic Findings</h2>
+    {% set severities = ['Critical', 'High', 'Medium', 'Low', 'Context'] %}
+    {% for sev in severities %}
+      <h3>{{ sev }} Severity</h3>
+      {% for f in assessment.forensic_findings if f.severity == sev %}
+        <p><strong>Rule ID:</strong> {{ f.rule_id }}</p>
+        <p><strong>Rule Name:</strong> {{ f.rule_name }}</p>
+        <p><strong>Finding:</strong> {{ f.forensic_finding }}</p>
+        <p><strong>Why It Matters:</strong> {{ f.why_it_matters }}</p>
+        <p><strong>Evidence:</strong> {{ f.evidence }}</p>
+        <p><strong>Investigation Procedure:</strong> {{ f.recommended_investigation }}</p>
+        <p><strong>Management Question:</strong> {{ f.question_for_management }}</p>
+        <hr/>
+      {% endfor %}
+    {% endfor %}
+  </section>
+
+  <!-- 13. Key Red Flags -->
+  <section class="section" id="red-flags">
+    <h2>Key Red Flags</h2>
+    {% for flag in assessment.red_flags %}
+      <p>{{ flag }}</p>
+    {% endfor %}
+  </section>
+
+  <!-- 14. Management Questions -->
+  <section class="section" id="management-questions">
+    <h2>Management Questions</h2>
+    {% for q in assessment.management_questions %}
+      <p>• {{ q }}</p>
+    {% endfor %}
+  </section>
+
+  <!-- 15. Investigation Priorities -->
+  <section class="section" id="investigation-priorities">
+    <h2>Investigation Priorities</h2>
+    <p>Priorities are derived from the severity of triggered forensic findings and are listed in descending order of risk.</p>
+    {% set sorted_findings = assessment.forensic_findings|sort(attribute='severity', reverse=true) %}
+    {% for f in sorted_findings[:5] %}
+      <p><strong>{{ f.severity }}:</strong> {{ f.rule_name }} (Rule {{ f.rule_id }})</p>
+    {% endfor %}
+  </section>
+
+  <!-- 16. Confidence & Data Quality -->
+  <section class="section" id="confidence-data">
+    <h2>Confidence & Data Quality</h2>
+    <p><strong>Confidence Score:</strong> {{ assessment.overall.confidence }}%</p>
+    <p><strong>Confidence Level:</strong> {% if assessment.overall.confidence >= 80 %}HIGH{% elif assessment.overall.confidence >= 60 %}MEDIUM{% else %}LOW{% endif %}</p>
+    <p><strong>Variables Unavailable:</strong> {{ assessment.audit_trail.variables_available }}</p>
+    <p><strong>Disclosure‑dependent Variables:</strong> {{ assessment.audit_trail.variables_missing }}</p>
+    <p><strong>Other Limitations:</strong> {{ assessment.limitations|join('; ') }}</p>
+  </section>
+
+  <!-- 17. Methodology -->
+  <section class="section" id="methodology">
+    <h2>Methodology</h2>
+    <p>The EFS™ methodology comprises 7 pillars, 95 variables, 5 established forensic models, and 110 deterministic forensic rules. The engine is deterministic; scoring is pending empirical calibration.</p>
+  </section>
+
+  <!-- 18. Important Limitations -->
+  <section class="section" id="limitations">
+    <h2>Important Limitations</h2>
+    <ul>
+      <li>EFS™ is a forensic screening framework, not a legal finding of fraud.</li>
+      <li>Elevated forensic risk does not prove fraud.</li>
+      <li>Missing data may limit conclusions.</li>
+      <li>The final weighted EFS™ score is pending calibration.</li>
+    </ul>
+  </section>
+
+  <!-- 19. Audit Trail -->
+  <section class="section" id="audit-trail">
+    <h2>Audit Trail</h2>
+    <table class="table">
+      <tbody>
+        <tr><th>Assessment ID</th><td>{{ assessment.audit_trail.assessment_id }}</td></tr>
+        <tr><th>Analysis ID</th><td>{{ assessment.audit_trail.analysis_id }}</td></tr>
+        <tr><th>EFS Version</th><td>{{ assessment.audit_trail.efs_version }}</td></tr>
+        <tr><th>Scoring Version</th><td>{{ assessment.audit_trail.scoring_version }}</td></tr>
+        <tr><th>Rulebook Version</th><td>{{ assessment.audit_trail.rulebook_version }}</td></tr>
+        <tr><th>Engine Version</th><td>{{ assessment.audit_trail.engine_version }}</td></tr>
+        <tr><th>Timestamp (UTC)</th><td>{{ assessment.audit_trail.timestamp }}</td></tr>
+        <tr><th>Variables Evaluated</th><td>{{ assessment.audit_trail.variables_evaluated }}</td></tr>
+        <tr><th>Rules Evaluated</th><td>{{ assessment.audit_trail.rules_evaluated }}</td></tr>
+        <tr><th>Rules Triggered</th><td>{{ assessment.audit_trail.rules_triggered }}</td></tr>
+        <tr><th>Calculation Time (ms)</th><td>{{ assessment.audit_trail.calculation_time_ms }}</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="footer">EFS Assessment Report – Generated on {{ generated_at }}</div>
+</body>
+</html>

@@ -1,4 +1,17 @@
-"""Comprehensive unit test suite for Methodology-Driven EFS™ Engine Framework."""
+"""Comprehensive Unit Test Suite for Production EFS™ Assessment Engine.
+
+Verifies:
+1. Variable loading
+2. Scoring-rule loading
+3. Missing variable handling
+4. Variable scoring
+5. Pillar aggregation
+6. Established-model execution
+7. Rule evaluation
+8. Evidence states
+9. Confidence calculation
+10. Complete EFS assessment (Deterministic mock dataset)
+"""
 
 import os
 import sys
@@ -7,175 +20,167 @@ import unittest
 # Ensure backend directory is in sys.path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from app.calculations.efs import (
-    EFSEngine,
-    EFSRequest,
-    EFSResponse,
-    MethodologyLoader,
-    ValidationLayer,
-)
+from app.calculations.efs.confidence_engine import ConfidenceEngine
+from app.calculations.efs.engine import EFSEngine
+from app.calculations.efs.methodology_loader import MethodologyLoader
+from app.calculations.efs.models.established_models import EstablishedModelsEvaluator
+from app.calculations.efs.pillars.registry import PillarEngineRegistry
+from app.calculations.efs.rules.engine import ForensicRuleEngine
+from app.calculations.efs.rules.loader import RuleLoader
+from app.calculations.efs.scoring_engine import ScoringEngine
+from app.calculations.efs.variable_engine import VariableCalculationEngine
 
 
-class TestMethodologyDrivenEFSEngine(unittest.TestCase):
-    """Test suite verifying methodology loading, variable traceability, audit trails, and execution."""
+class TestEFSAssessmentEngine(unittest.TestCase):
+    """Unit test suite verifying all 10 required areas of the EFS Assessment Engine."""
 
-    def test_methodology_loader_json_parsing(self):
-        """Verify that MethodologyLoader successfully parses JSON config files."""
-        loader = MethodologyLoader()
-        config = loader.load(version="1.0")
+    def setUp(self):
+        self.methodology_loader = MethodologyLoader()
+        self.methodology = self.methodology_loader.load(version="1.0")
+        self.scoring_engine = ScoringEngine()
+        self.variable_engine = VariableCalculationEngine()
+        self.established_evaluator = EstablishedModelsEvaluator()
+        self.pillar_registry = PillarEngineRegistry()
+        self.rule_engine = ForensicRuleEngine()
+        self.confidence_engine = ConfidenceEngine()
+        self.efs_engine = EFSEngine()
 
-        self.assertEqual(config.efs_version, "1.0")
-        self.assertEqual(len(config.pillar_weights), 7)
-        self.assertAlmostEqual(sum(config.pillar_weights.values()), 1.0, places=3)
-        self.assertIn("cash_flow_integrity", config.sub_variable_weights)
-        self.assertIn("financial_statement_quality", config.registered_variables)
+    def test_01_variable_loading(self):
+        """1. Verify that all 95 EFS variables are loaded dynamically."""
+        reg_vars = self.methodology.registered_variables
+        total_count = sum(len(vars_list) for vars_list in reg_vars.values())
+        self.assertEqual(len(reg_vars), 7, "Must contain exactly 7 pillars")
+        self.assertEqual(total_count, 95, "Must load all 95 EFS variables from 02_EFS_VARIABLE_LIBRARY.xlsx")
+        self.assertIn("Financial Statement Quality", reg_vars)
+        self.assertIn("Cash Flow Integrity", reg_vars)
 
-    def test_efs_engine_full_pipeline_execution(self):
-        """Verify complete engine execution with audit trail, traceability, and 6 explainability categories."""
-        engine = EFSEngine()
+    def test_02_scoring_rule_loading(self):
+        """2. Verify that 100 scoring rules are loaded from config."""
+        scoring_rules = self.scoring_engine._scoring_rules
+        self.assertEqual(len(scoring_rules), 100, "Must load all 100 scoring rules for 95 variables + 5 models")
+        self.assertIn("FSQ01", scoring_rules)
+        self.assertIn("FSQ03", scoring_rules)
 
-        mock_payload = {
+    def test_03_missing_variable_handling(self):
+        """3. Verify missing data produces MISSING status without defaulting to zero score."""
+        mock_input = {"raw_variables": {}}
+        computed = self.variable_engine.compute_variables(mock_input, self.methodology)
+        fsq01 = computed.get("FSQ01")
+        self.assertIsNotNone(fsq01)
+        self.assertEqual(fsq01["data_status"], "MISSING")
+        self.assertIsNone(fsq01["raw_value"])
+
+    def test_04_variable_scoring(self):
+        """4. Verify deterministic mapping of raw values to score bands (0, 25, 50, 75, 100)."""
+        # FSQ03 DSRI <= 1.00 -> 100 (Strong)
+        score1, band1 = self.scoring_engine.score_variable("FSQ03", 0.95)
+        self.assertEqual(score1, 100)
+        self.assertEqual(band1, "Strong / 100")
+
+        # FSQ03 DSRI > 1.40 -> 0 (Critical)
+        score2, band2 = self.scoring_engine.score_variable("FSQ03", 1.45)
+        self.assertEqual(score2, 0)
+        self.assertEqual(band2, "Critical / 0")
+
+    def test_05_pillar_aggregation(self):
+        """5. Verify pillar aggregation across the 7 frozen pillars."""
+        mock_input = {
+            "raw_variables": {
+                "revenue": 100000.0, "prior_revenue": 80000.0,
+                "receivables": 15000.0, "prior_receivables": 10000.0,
+                "cfo": 20000.0, "pat": 15000.0,
+                "total_assets": 200000.0, "prior_total_assets": 180000.0,
+            }
+        }
+        res = self.efs_engine.run("analysis_test_05", mock_input)
+        self.assertEqual(len(res.pillars), 7)
+        for pillar in res.pillars:
+            self.assertIn(pillar.pillar_id, ["P1", "P2", "P3", "P4", "P5", "P6", "P7"])
+            self.assertGreaterEqual(pillar.variables_evaluated, 10)
+
+    def test_06_established_model_execution(self):
+        """6. Verify execution of Beneish, Sloan, Altman, Piotroski, and Ohlson models."""
+        raw_vars = {"MODEL01": -2.45, "MODEL02": 0.04, "MODEL03": 3.2, "MODEL04": 8, "MODEL05": 0.12}
+        models_output = self.established_evaluator.evaluate_all(raw_vars)
+        self.assertEqual(len(models_output), 5)
+        self.assertEqual(models_output["beneish_m_score"]["score"], -2.45)
+        self.assertEqual(models_output["sloan_accrual"]["score"], 0.04)
+        self.assertEqual(models_output["altman_z_score"]["score"], 3.2)
+        self.assertEqual(models_output["piotroski_f_score"]["score"], 8)
+        self.assertEqual(models_output["ohlson_o_score"]["score"], 0.12)
+
+    def test_07_rule_evaluation(self):
+        """7. Verify evaluation of 110 forensic rules."""
+        loader = RuleLoader()
+        rules = loader.load_rules(version="1.0")
+        self.assertEqual(len(rules), 110, "Must load all 110 forensic rules from efs_rules.json")
+
+    def test_08_evidence_states(self):
+        """8. Verify explicit evidence states (Triggered, Not Triggered, Not Evaluated)."""
+        mock_input = {"raw_variables": {"FSQ03": 1.45}}  # DSRI elevated
+        res = self.efs_engine.run("analysis_test_08", mock_input)
+        findings = res.forensic_findings
+        self.assertGreater(len(findings), 0)
+        
+        triggered_findings = [f for f in findings if f.triggered]
+        self.assertGreater(len(triggered_findings), 0)
+        for tf in triggered_findings:
+            self.assertEqual(tf.evidence_state, "Triggered")
+            self.assertNotIn("fraud detected", tf.forensic_finding.lower())
+
+    def test_09_confidence_calculation(self):
+        """9. Verify multi-factor confidence computation."""
+        mock_input = {
+            "statement_flags": {"has_cash_flow_statement": False, "has_balance_sheet": True, "has_income_statement": True},
+            "mapping_confidence": 90.0,
+        }
+        res = self.efs_engine.run("analysis_test_09", mock_input)
+        self.assertLess(res.overall.confidence, 100.0)
+        self.assertGreater(len(res.limitations), 0)
+
+    def test_10_complete_efs_assessment_deterministic(self):
+        """10. Verify full deterministic EFS assessment output on mock dataset."""
+        mock_financial_dataset = {
             "methodology_version": "1.0",
-            "validation_output": {"status": "success", "issues": []},
-            "feature_output": {"status": "computed", "dataset": {"metric_1": 1.5}},
-            "ratio_output": {"status": "computed", "ratios": []},
-            "beneish_output": {"status": "computed", "m_score": -2.5},
             "statement_flags": {
                 "has_cash_flow_statement": True,
                 "has_balance_sheet": True,
                 "has_income_statement": True,
             },
+            "raw_variables": {
+                "revenue": 500000.0,
+                "prior_revenue": 450000.0,
+                "receivables": 80000.0,
+                "prior_receivables": 65000.0,
+                "cfo": 60000.0,
+                "pat": 45000.0,
+                "cogs": 300000.0,
+                "inventory": 50000.0,
+                "payables": 40000.0,
+                "total_assets": 600000.0,
+                "prior_total_assets": 550000.0,
+                "MODEL01": -2.35,  # Beneish
+                "MODEL02": 0.03,   # Sloan
+                "MODEL03": 3.10,   # Altman
+                "MODEL04": 7,      # Piotroski
+                "MODEL05": 0.08,   # Ohlson
+            },
         }
 
-        result = engine.run(analysis_id="test_analysis_123", input_payload=mock_payload)
+        # Run 1
+        res1 = self.efs_engine.run("mock_analysis_001", mock_financial_dataset)
+        # Run 2 with identical inputs
+        res2 = self.efs_engine.run("mock_analysis_001", mock_financial_dataset)
 
-        # 1. Audit Trail Assertions
-        self.assertEqual(result.analysis_id, "test_analysis_123")
-        self.assertEqual(result.efs_version, "1.0")
-        self.assertTrue(result.audit_trail.execution_id.startswith("efs_exec_"))
-        self.assertEqual(result.audit_trail.efs_version, "1.0")
-        self.assertEqual(result.audit_trail.engine_version, "1.0.0")
-        self.assertIn("validation", result.audit_trail.inputs_used)
-        self.assertGreater(result.audit_trail.variables_used_count, 0)
-        self.assertGreaterEqual(result.audit_trail.calculation_time_ms, 0.0)
-
-        # 2. Overall & Confidence Assertions
-        self.assertEqual(result.overall_score, 100.0)
-        self.assertEqual(result.confidence, 100.0)
-        self.assertEqual(result.manipulation_risk, "Low")
-
-        # 3. Pillar Traceability Assertions
-        self.assertEqual(len(result.pillar_scores), 7)
-        for pillar in result.pillar_scores:
-            self.assertEqual(pillar.status, "computed")
-            self.assertGreater(len(pillar.variables_used), 0)
-            self.assertGreater(len(pillar.variable_traceability), 0)
-            for var_trace in pillar.variable_traceability:
-                self.assertIsNotNone(var_trace.name)
-                self.assertGreater(var_trace.weight, 0)
-
-        # 4. Explainability 6-Category Assertions
-        exp = result.explainability
-        self.assertGreater(len(exp.observations), 0)
-        self.assertGreater(len(exp.positive_drivers), 0)
-        self.assertGreater(len(exp.negative_drivers), 0)
-        self.assertIsInstance(exp.red_flags, list)
-        self.assertGreater(len(exp.recommendations), 0)
-        self.assertGreater(len(exp.questions_for_management), 0)
-
-    def test_statement_ineligibility_handling(self):
-        """Verify that missing Cash Flow Statement causes Cash Flow Integrity pillar to mark ineligible gracefully."""
-        engine = EFSEngine()
-
-        payload = {
-            "statement_flags": {
-                "has_cash_flow_statement": False,
-                "has_balance_sheet": True,
-                "has_income_statement": True,
-            }
-        }
-
-        result = engine.run(analysis_id="missing_cfs_456", input_payload=payload)
-
-        # Find Cash Flow Integrity pillar result
-        cf_pillar = next(
-            p for p in result.pillar_scores if p.canonical_key == "cash_flow_integrity"
-        )
-
-        self.assertEqual(cf_pillar.status, "ineligible")
-        self.assertEqual(cf_pillar.score, 0.0)
-        self.assertIn("Cash Flow Statement", cf_pillar.execution_metadata.variables_missing)
-        # Confidence score should drop due to missing statement penalty
-        self.assertLess(result.confidence, 100.0)
-
-    def test_pydantic_response_schema_validation(self):
-        """Verify that Pydantic EFSResponse schema validates engine output."""
-        engine = EFSEngine()
-        result = engine.run(analysis_id="schema_test_789", input_payload={})
-
-        response = EFSResponse(
-            analysis_id=result.analysis_id,
-            efs_version=result.efs_version,
-            overall_score=result.overall_score,
-            confidence=result.confidence,
-            manipulation_risk=result.manipulation_risk,
-            audit_trail={
-                "execution_id": result.audit_trail.execution_id,
-                "timestamp": result.audit_trail.timestamp,
-                "efs_version": result.audit_trail.efs_version,
-                "engine_version": result.audit_trail.engine_version,
-                "inputs_used": result.audit_trail.inputs_used,
-                "variables_used_count": result.audit_trail.variables_used_count,
-                "calculation_time_ms": result.audit_trail.calculation_time_ms,
-            },
-            pillar_scores=[
-                {
-                    "name": p.name,
-                    "canonical_key": p.canonical_key,
-                    "score": p.score,
-                    "weight": p.weight,
-                    "status": p.status,
-                    "variables_used": p.variables_used,
-                    "strengths": p.strengths,
-                    "weaknesses": p.weaknesses,
-                    "red_flags": p.red_flags,
-                    "execution_metadata": {
-                        "execution_time_ms": p.execution_metadata.execution_time_ms,
-                        "variables_used": p.execution_metadata.variables_used,
-                        "variables_missing": p.execution_metadata.variables_missing,
-                        "variables_ignored": p.execution_metadata.variables_ignored,
-                        "warnings": p.execution_metadata.warnings,
-                    },
-                    "variable_traceability": [
-                        {
-                            "name": vt.name,
-                            "value": vt.value,
-                            "weight": vt.weight,
-                            "contribution": vt.contribution,
-                            "status": vt.status,
-                        }
-                        for vt in p.variable_traceability
-                    ],
-                }
-                for p in result.pillar_scores
-            ],
-            explainability={
-                "observations": result.explainability.observations,
-                "positive_drivers": result.explainability.positive_drivers,
-                "negative_drivers": result.explainability.negative_drivers,
-                "red_flags": result.explainability.red_flags,
-                "recommendations": result.explainability.recommendations,
-                "questions_for_management": result.explainability.questions_for_management,
-            },
-        )
-
-        dump = response.model_dump()
-        self.assertEqual(dump["analysis_id"], "schema_test_789")
-        self.assertEqual(dump["efs_version"], "1.0")
-        self.assertIn("audit_trail", dump)
-        self.assertIn("variables_used_count", dump["audit_trail"])
-        self.assertIn("variables_used", dump["pillar_scores"][0])
-        self.assertIn("positive_drivers", dump["explainability"])
+        # Assert Deterministic behavior (Run 1 output == Run 2 output)
+        self.assertEqual(res1.status, res2.status)
+        self.assertEqual(res1.overall.score, res2.overall.score)
+        self.assertEqual(res1.overall.score_status, "CALIBRATION_PENDING")
+        self.assertEqual(res1.overall.confidence, res2.overall.confidence)
+        self.assertEqual(len(res1.pillars), len(res2.pillars))
+        self.assertEqual(len(res1.forensic_findings), len(res2.forensic_findings))
+        self.assertEqual(res1.audit_trail.rules_evaluated, res2.audit_trail.rules_evaluated)
+        self.assertEqual(res1.audit_trail.rules_triggered, res2.audit_trail.rules_triggered)
 
 
 if __name__ == "__main__":

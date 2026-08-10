@@ -1,15 +1,15 @@
 """Forensic Rule Engine Orchestrator.
 
-Orchestrates rule loading and rule execution for financial forensic evaluation.
+Orchestrates loading and execution of all 110 forensic rules against calculated EFS variables
+and established model outputs.
 """
 
 import logging
-from typing import List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
-from app.calculations.efs.models.domain import EFSInputVariables
+from app.calculations.efs.models.domain import EFSVariableResult, ForensicRuleFinding
 from app.calculations.efs.rules.executor import RuleExecutor
 from app.calculations.efs.rules.loader import RuleLoader
-from app.calculations.efs.rules.models import RuleExecutionSummary, TriggeredRuleFinding
 
 logger = logging.getLogger(__name__)
 
@@ -27,24 +27,27 @@ class ForensicRuleEngine:
 
     def evaluate_rules(
         self,
-        variables: EFSInputVariables,
+        computed_vars: Dict[str, EFSVariableResult],
+        established_models: Dict[str, Any],
         version: str = "1.0",
-        group: Optional[str] = None,
-    ) -> Tuple[List[TriggeredRuleFinding], RuleExecutionSummary]:
-        """Evaluates active forensic rules for a given analysis input and returns findings and execution summary."""
-        logger.info("Evaluating forensic rules for analysis_id=%s (version=%s)", variables.analysis_id, version)
+    ) -> Tuple[List[ForensicRuleFinding], int, int]:
+        """Evaluates all active forensic rules and returns list of findings, count evaluated, count triggered."""
+        logger.info("Evaluating forensic rules (version=%s)...", version)
 
         # 1. Load active rules dynamically
-        rules = self.loader.load_rules(version=version, group=group, only_enabled=True)
+        rules = self.loader.load_rules(version=version, only_enabled=True)
 
-        # 2. Execute rules against input variables
-        findings, summary = self.executor.execute_rules(rules=rules, variables=variables)
-
-        logger.info(
-            "Forensic Rule Engine finished: %d rules evaluated, %d rules triggered in %.2f ms",
-            summary.rules_evaluated_count,
-            summary.rules_triggered_count,
-            summary.execution_time_ms,
+        # 2. Execute rules against input variables and established models
+        findings, evaluated_cnt, triggered_cnt = self.executor.evaluate_rules(
+            rules=rules,
+            computed_vars=computed_vars,
+            established_models=established_models,
         )
 
-        return findings, summary
+        logger.info(
+            "Forensic Rule Engine finished: %d rules evaluated, %d rules triggered",
+            evaluated_cnt,
+            triggered_cnt,
+        )
+
+        return findings, evaluated_cnt, triggered_cnt

@@ -1,7 +1,7 @@
 """Domain models and dataclasses for the EFS™ Assessment Framework.
 
 Defines internal domain entities for input variables, pillar results, variable traceability,
-regulatory audit trails, and 6-category explainability outputs.
+established models, forensic rule findings, regulatory audit trails, and explainability outputs.
 """
 
 from dataclasses import dataclass, field
@@ -20,6 +20,35 @@ class VariableTraceability:
 
 
 @dataclass
+class EFSVariableResult:
+    """Domain model representing an individual evaluated EFS variable."""
+
+    variable_id: str
+    variable_name: str
+    pillar: str
+    raw_value: Optional[float]
+    unit: str
+    score: Optional[int] = None
+    scoring_band: Optional[str] = None
+    data_status: str = "AVAILABLE"  # AVAILABLE, MISSING, NOT_APPLICABLE, INSUFFICIENT_EVIDENCE
+    source_fields: List[str] = field(default_factory=list)
+    calculation_status: str = "COMPLETED"
+
+
+@dataclass
+class EstablishedModelResult:
+    """Domain representation of an established financial model result."""
+
+    model_id: str
+    model_name: str
+    score: Optional[float]
+    status: str  # COMPLETED, INSUFFICIENT_DATA, INELIGIBLE
+    interpretation: str
+    role: str  # Supporting Evidence, Cross-Validation
+    details: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class PillarExecutionMetadata:
     """Execution metadata tracked per pillar run."""
 
@@ -34,19 +63,38 @@ class PillarExecutionMetadata:
 class PillarResult:
     """Domain representation of an individual pillar evaluation result."""
 
-    name: str
-    canonical_key: str
-    score: float
-    weight: float
-    status: str = "computed"
-    variables_used: List[str] = field(default_factory=list)
-    strengths: List[str] = field(default_factory=list)
-    weaknesses: List[str] = field(default_factory=list)
-    red_flags: List[str] = field(default_factory=list)
+    pillar_id: str
+    pillar_name: str
+    pillar_score: Optional[float]
+    variables_evaluated: int
+    variables_available: int
+    variables_missing: List[str] = field(default_factory=list)
+    key_positive_drivers: List[str] = field(default_factory=list)
+    key_negative_drivers: List[str] = field(default_factory=list)
+    data_quality: str = "HIGH"  # HIGH, MEDIUM, LOW, INSUFFICIENT
+    status: str = "COMPLETED"  # COMPLETED, INELIGIBLE, CALIBRATION_PENDING
+    variables: List[EFSVariableResult] = field(default_factory=list)
     execution_metadata: PillarExecutionMetadata = field(
         default_factory=lambda: PillarExecutionMetadata(execution_time_ms=0.0)
     )
-    variable_traceability: List[VariableTraceability] = field(default_factory=list)
+
+
+@dataclass
+class ForensicRuleFinding:
+    """Domain model representing an evaluated forensic rule finding."""
+
+    rule_id: str
+    rule_name: str
+    pillar: str
+    triggered: bool
+    severity: str  # Critical, High, Medium, Low, Context
+    trigger_condition: str
+    evidence: str
+    forensic_finding: str
+    why_it_matters: str
+    recommended_investigation: str
+    question_for_management: str
+    evidence_state: str = "Triggered"  # Triggered, Not Triggered, Not Evaluated, Not Applicable, Insufficient Evidence
 
 
 @dataclass
@@ -54,13 +102,14 @@ class MethodologyConfig:
     """Container for dynamically loaded methodology parameters."""
 
     efs_version: str
-    pillar_weights: Dict[str, float]
-    sub_variable_weights: Dict[str, Dict[str, float]]
+    pillar_weights: Dict[str, Any]
+    sub_variable_weights: Any
     risk_bands: Dict[str, Dict[str, Any]]
     confidence_factors: Dict[str, float]
     registered_variables: Dict[str, List[str]]
     eligibility_rules: Dict[str, Any]
     evaluation_rules: List[Dict[str, Any]]
+    raw_config: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -93,20 +142,43 @@ class EFSInputVariables:
 class AuditTrail:
     """Regulatory audit trail entity."""
 
-    execution_id: str
-    timestamp: str
+    assessment_id: str
+    analysis_id: str
     efs_version: str
+    scoring_version: str
+    rulebook_version: str
     engine_version: str
-    inputs_used: List[str]
-    variables_used_count: int
+    timestamp: str
+    variables_evaluated: int
+    variables_available: int
+    rules_evaluated: int
+    rules_triggered: int
     calculation_time_ms: float
-    rules_evaluated_count: int = 0
-    rules_triggered_count: int = 0
+
+
+@dataclass
+class ConfidenceResult:
+    """Domain representation of multi-factor confidence computation."""
+
+    confidence_score: float
+    confidence_level: str  # High, Medium, Low
+    confidence_factors: Dict[str, float]
+    limitations: List[str]
+
+
+@dataclass
+class EFSOverallResult:
+    """Domain representation of overall score aggregation."""
+
+    score: Optional[float]
+    score_status: str  # CALIBRATION_PENDING, COMPUTED
+    risk_level: Optional[str]
+    confidence: float
 
 
 @dataclass
 class ExplainabilityResult:
-    """Domain model representing synthesized 6-category forensic explainability."""
+    """Domain model representing synthesized forensic explainability."""
 
     observations: List[str] = field(default_factory=list)
     positive_drivers: List[str] = field(default_factory=list)
@@ -120,11 +192,16 @@ class ExplainabilityResult:
 class EFSExecutionResult:
     """Complete domain result produced by the EFS Engine execution pipeline."""
 
+    assessment_id: str
     analysis_id: str
     efs_version: str
-    overall_score: float
-    confidence: float
-    manipulation_risk: str
+    status: str
+    overall: EFSOverallResult
+    pillars: List[PillarResult]
+    established_models: Dict[str, Any]
+    forensic_findings: List[ForensicRuleFinding]
+    red_flags: List[str]
+    management_questions: List[str]
+    limitations: List[str]
     audit_trail: AuditTrail
-    pillar_scores: List[PillarResult]
     explainability: ExplainabilityResult

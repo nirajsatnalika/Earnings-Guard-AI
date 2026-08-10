@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class EFSRequest(BaseModel):
     """Request payload schema for EFS calculation endpoint."""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="allow")
 
     methodology_version: str = Field(default="1.0", description="Target methodology version (default: 1.0).")
     validation_output: Optional[Dict[str, Any]] = Field(
@@ -24,4 +24,7 @@ class EFSRequest(BaseModel):
     )
     statement_flags: Optional[Dict[str, bool]] = Field(
         default=None, description="Availability flags for Cash Flow, Balance Sheet, Income Statement."
+    )
+    raw_variables: Optional[Dict[str, Any]] = Field(
+        default=None, description="Raw financial statement variables dictionary."
     )

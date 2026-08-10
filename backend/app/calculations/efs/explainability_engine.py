@@ -7,8 +7,6 @@ Synthesizes forensic assessment results and Rule Engine findings into 6 structur
 - red_flags
 - recommendations
 - questions_for_management
-
-Utilizes rule-based findings without AI prompts or hardcoded financial formulas.
 """
 
 import logging
@@ -17,9 +15,9 @@ from app.calculations.efs.interfaces.base import IExplainabilityEngine
 from app.calculations.efs.models.domain import (
     EFSInputVariables,
     ExplainabilityResult,
+    ForensicRuleFinding,
     PillarResult,
 )
-from app.calculations.efs.rules.models import TriggeredRuleFinding
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +29,7 @@ class ExplainabilityEngine(IExplainabilityEngine):
         self,
         pillar_results: List[PillarResult],
         variables: EFSInputVariables,
-        rule_findings: Optional[List[TriggeredRuleFinding]] = None,
+        rule_findings: Optional[List[ForensicRuleFinding]] = None,
     ) -> ExplainabilityResult:
         logger.debug(
             "Generating 6-category explainability outputs for analysis_id=%s (rule_findings=%d)",
@@ -48,27 +46,26 @@ class ExplainabilityEngine(IExplainabilityEngine):
         recommendations: List[str] = []
         questions_for_management: List[str] = []
 
-        # 1. Collect pillar-level findings
+        # 1. Collect pillar-level drivers
         for pillar in pillar_results:
-            positive_drivers.extend(pillar.strengths)
-            negative_drivers.extend(pillar.weaknesses)
-            red_flags.extend(pillar.red_flags)
+            positive_drivers.extend(pillar.key_positive_drivers)
+            negative_drivers.extend(pillar.key_negative_drivers)
 
         # 2. Integrate Rule Engine findings if provided
         if rule_findings:
             for finding in rule_findings:
-                obs_text = f"[{finding.category}] {finding.message}"
+                if not finding.triggered:
+                    continue
+                obs_text = f"[{finding.pillar}] {finding.rule_name}"
                 observations.append(obs_text)
 
                 if finding.severity in ("High", "Critical"):
-                    red_flags.append(f"[{finding.severity}] {finding.message}")
+                    red_flags.append(f"[{finding.severity}] {finding.forensic_finding}")
                 elif finding.severity in ("Medium", "Low"):
-                    negative_drivers.append(f"[{finding.category}] {finding.message}")
-                elif finding.severity == "Info":
-                    positive_drivers.append(f"[{finding.category}] {finding.message}")
+                    negative_drivers.append(f"[{finding.pillar}] {finding.forensic_finding}")
 
-                if finding.recommendation:
-                    recommendations.append(finding.recommendation)
+                if finding.recommended_investigation:
+                    recommendations.append(finding.recommended_investigation)
                 if finding.question_for_management:
                     questions_for_management.append(finding.question_for_management)
 

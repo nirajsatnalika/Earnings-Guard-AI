@@ -1,20 +1,23 @@
-"""EFS Engine Schemas Package."""
+"""EFS Schemas Package."""
 
-from app.calculations.efs.schemas.audit import AuditTrailSchema
-from app.calculations.efs.schemas.pillars import (
-    PillarExecutionMetadataSchema,
-    PillarScoreSchema,
-    VariableTraceabilitySchema,
-)
 from app.calculations.efs.schemas.requests import EFSRequest
-from app.calculations.efs.schemas.responses import EFSResponse, ExplainabilitySchema
+from app.calculations.efs.schemas.responses import (
+    AuditTrailSchema,
+    EFSResponse,
+    EFSVariableSchema,
+    EstablishedModelsSchema,
+    ForensicFindingSchema,
+    OverallSchema,
+    PillarSchema,
+)
 
 __all__ = [
-    "AuditTrailSchema",
-    "VariableTraceabilitySchema",
-    "PillarExecutionMetadataSchema",
-    "PillarScoreSchema",
     "EFSRequest",
-    "ExplainabilitySchema",
     "EFSResponse",
+    "AuditTrailSchema",
+    "EFSVariableSchema",
+    "EstablishedModelsSchema",
+    "ForensicFindingSchema",
+    "OverallSchema",
+    "PillarSchema",
 ]

@@ -1,0 +1,1806 @@
+{
+  "efs_version": "1.0",
+  "total_scoring_rules": 100,
+  "scoring_rules": {
+    "FSQ01": {
+      "id": "FSQ01",
+      "name": "Revenue Growth",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Contextual",
+      "direction": "Context dependent",
+      "bands": {
+        "critical_0": "Extreme decline / anomalous",
+        "weak_25": "Material decline",
+        "moderate_50": "Normal sector range",
+        "good_75": "Healthy / explainable",
+        "strong_100": "Healthy and well-supported"
+      },
+      "forensic_rationale": "Growth is neither inherently good nor bad; assess against cash flow, WC and sector context.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "FSQ02": {
+      "id": "FSQ02",
+      "name": "Receivables Growth vs Revenue Growth",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Gap",
+      "direction": "Lower gap",
+      "bands": {
+        "critical_0": ">20 pp",
+        "weak_25": "10–20 pp",
+        "moderate_50": "5–10 pp",
+        "good_75": "0–5 pp",
+        "strong_100": "AR growth <= revenue growth"
+      },
+      "forensic_rationale": "Widening AR-vs-revenue growth can indicate weak collectability or aggressive revenue recognition.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "FSQ03": {
+      "id": "FSQ03",
+      "name": "DSRI",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">1.40",
+        "weak_25": "1.20–1.40",
+        "moderate_50": "1.10–1.20",
+        "good_75": "1.00–1.10",
+        "strong_100": "<=1.00"
+      },
+      "forensic_rationale": "Beneish-derived deterioration in receivables relative to sales.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "FSQ04": {
+      "id": "FSQ04",
+      "name": "Revenue Quality Ratio (CFO/Revenue)",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Higher",
+      "bands": {
+        "critical_0": "<0%",
+        "weak_25": "0–5%",
+        "moderate_50": "5–10%",
+        "good_75": "10–20%",
+        "strong_100": ">=20%"
+      },
+      "forensic_rationale": "Tests whether reported revenue translates into operating cash.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "FSQ05": {
+      "id": "FSQ05",
+      "name": "Gross Margin Change",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Trend",
+      "direction": "Stable / explainable",
+      "bands": {
+        "critical_0": ">10 pp unexplained",
+        "weak_25": "5–10 pp",
+        "moderate_50": "2–5 pp",
+        "good_75": "0–2 pp",
+        "strong_100": "Improvement with corroborating evidence"
+      },
+      "forensic_rationale": "Large unexplained margin changes can reflect recognition or classification issues.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "FSQ06": {
+      "id": "FSQ06",
+      "name": "Operating Margin Change",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Trend",
+      "direction": "Stable / explainable",
+      "bands": {
+        "critical_0": ">10 pp unexplained",
+        "weak_25": "5–10 pp",
+        "moderate_50": "2–5 pp",
+        "good_75": "0–2 pp",
+        "strong_100": "Improvement corroborated by cash/revenue"
+      },
+      "forensic_rationale": "Sharp unexplained operating-margin expansion warrants review.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "FSQ07": {
+      "id": "FSQ07",
+      "name": "Net Margin Change",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Trend",
+      "direction": "Stable / explainable",
+      "bands": {
+        "critical_0": ">10 pp unexplained",
+        "weak_25": "5–10 pp",
+        "moderate_50": "2–5 pp",
+        "good_75": "0–2 pp",
+        "strong_100": "Improvement from recurring operations"
+      },
+      "forensic_rationale": "Large unexplained net-margin changes may be driven by non-operating/accounting items.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "FSQ08": {
+      "id": "FSQ08",
+      "name": "Other Income / PAT",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">50%",
+        "weak_25": "25–50%",
+        "moderate_50": "10–25%",
+        "good_75": "5–10%",
+        "strong_100": "<5%"
+      },
+      "forensic_rationale": "High non-core income contribution reduces confidence in core earnings.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "FSQ09": {
+      "id": "FSQ09",
+      "name": "Exceptional Items / PAT",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">50%",
+        "weak_25": "25–50%",
+        "moderate_50": "10–25%",
+        "good_75": "5–10%",
+        "strong_100": "<5%"
+      },
+      "forensic_rationale": "Material exceptional items distort earnings quality and comparability.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "FSQ10": {
+      "id": "FSQ10",
+      "name": "Tax Rate Anomaly",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Deviation",
+      "direction": "Stable / explainable",
+      "bands": {
+        "critical_0": ">20 pp unexplained",
+        "weak_25": "10–20 pp",
+        "moderate_50": "5–10 pp",
+        "good_75": "0–5 pp",
+        "strong_100": "Reconciled / recurring"
+      },
+      "forensic_rationale": "Unusual tax rates can materially support reported earnings.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "FSQ11": {
+      "id": "FSQ11",
+      "name": "Earnings vs Revenue Divergence",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Gap",
+      "direction": "Lower unexplained gap",
+      "bands": {
+        "critical_0": ">30 pp",
+        "weak_25": "20–30 pp",
+        "moderate_50": "10–20 pp",
+        "good_75": "0–10 pp",
+        "strong_100": "Supported by margin/cash evidence"
+      },
+      "forensic_rationale": "Profit growth far above sales growth requires evidence of sustainability.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "FSQ12": {
+      "id": "FSQ12",
+      "name": "EPS vs PAT Divergence",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Gap",
+      "direction": "Stable / explainable",
+      "bands": {
+        "critical_0": ">20 pp unexplained",
+        "weak_25": "10–20 pp",
+        "moderate_50": "5–10 pp",
+        "good_75": "0–5 pp",
+        "strong_100": "Explained by share count"
+      },
+      "forensic_rationale": "Reconcile dilution, buybacks and other capital actions.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "FSQ13": {
+      "id": "FSQ13",
+      "name": "Revenue Concentration",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower / explainable",
+      "bands": {
+        "critical_0": ">50% top customer",
+        "weak_25": "30–50%",
+        "moderate_50": "20–30%",
+        "good_75": "10–20%",
+        "strong_100": "<10% / diversified"
+      },
+      "forensic_rationale": "High concentration increases the importance of validating revenue sustainability.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "FSQ14": {
+      "id": "FSQ14",
+      "name": "Contract Liabilities / Revenue",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Contextual",
+      "direction": "Context dependent",
+      "bands": {
+        "critical_0": "Unusual decline + revenue acceleration",
+        "weak_25": "Material decline",
+        "moderate_50": "Stable",
+        "good_75": "Healthy increase with billing evidence",
+        "strong_100": "Strong support"
+      },
+      "forensic_rationale": "Contract liabilities can corroborate or challenge revenue timing.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "FSQ15": {
+      "id": "FSQ15",
+      "name": "Deferred Revenue Change",
+      "pillar": "Financial Statement Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Trend",
+      "direction": "Context dependent",
+      "bands": {
+        "critical_0": "Sharp unexplained decline",
+        "weak_25": "Material decline",
+        "moderate_50": "Stable",
+        "good_75": "Moderate increase",
+        "strong_100": "Increase consistent with growth"
+      },
+      "forensic_rationale": "Unusual deferred-revenue movements require billing/cash reconciliation.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI01": {
+      "id": "CFI01",
+      "name": "CFO / PAT",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Higher",
+      "bands": {
+        "critical_0": "<0.50",
+        "weak_25": "0.50–0.80",
+        "moderate_50": "0.80–1.00",
+        "good_75": "1.00–1.20",
+        "strong_100": ">1.20"
+      },
+      "forensic_rationale": "Core earnings-to-cash conversion signal.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI02": {
+      "id": "CFI02",
+      "name": "CFO / EBITDA",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Higher",
+      "bands": {
+        "critical_0": "<0.40",
+        "weak_25": "0.40–0.60",
+        "moderate_50": "0.60–0.80",
+        "good_75": "0.80–1.00",
+        "strong_100": ">=1.00"
+      },
+      "forensic_rationale": "Tests conversion of operating earnings into cash.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI03": {
+      "id": "CFI03",
+      "name": "CFO Margin",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Higher",
+      "bands": {
+        "critical_0": "<0%",
+        "weak_25": "0–5%",
+        "moderate_50": "5–10%",
+        "good_75": "10–20%",
+        "strong_100": ">=20%"
+      },
+      "forensic_rationale": "Low operating cash relative to revenue reduces earnings confidence.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI04": {
+      "id": "CFI04",
+      "name": "Free Cash Flow",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Absolute / scaled",
+      "direction": "Higher / sustainable",
+      "bands": {
+        "critical_0": "Negative and deteriorating",
+        "weak_25": "Negative",
+        "moderate_50": "Near zero",
+        "good_75": "Positive",
+        "strong_100": "Strong positive and persistent"
+      },
+      "forensic_rationale": "Persistent weak FCF despite profits warrants investigation.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI05": {
+      "id": "CFI05",
+      "name": "FCF Margin",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Higher",
+      "bands": {
+        "critical_0": "<-10%",
+        "weak_25": "-10–0%",
+        "moderate_50": "0–5%",
+        "good_75": "5–10%",
+        "strong_100": ">=10%"
+      },
+      "forensic_rationale": "Tests cash generation after investment.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI06": {
+      "id": "CFI06",
+      "name": "CFO Growth vs PAT Growth",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Gap",
+      "direction": "Lower divergence",
+      "bands": {
+        "critical_0": ">30 pp",
+        "weak_25": "20–30 pp",
+        "moderate_50": "10–20 pp",
+        "good_75": "0–10 pp",
+        "strong_100": "CFO growth >= PAT growth"
+      },
+      "forensic_rationale": "Earnings growth without cash growth is a key warning.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI07": {
+      "id": "CFI07",
+      "name": "CFO Volatility",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Statistical",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": "Very high",
+        "weak_25": "High",
+        "moderate_50": "Moderate",
+        "good_75": "Low",
+        "strong_100": "Very low"
+      },
+      "forensic_rationale": "High volatility can indicate inconsistent cash conversion.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI08": {
+      "id": "CFI08",
+      "name": "Cash Interest Coverage",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Higher",
+      "bands": {
+        "critical_0": "<1.0x",
+        "weak_25": "1.0–2.0x",
+        "moderate_50": "2.0–4.0x",
+        "good_75": "4.0–8.0x",
+        "strong_100": ">8.0x"
+      },
+      "forensic_rationale": "Weak cash coverage can increase reporting pressure.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI09": {
+      "id": "CFI09",
+      "name": "Cash Tax / Tax Expense",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Context dependent",
+      "bands": {
+        "critical_0": "<25% unexplained",
+        "weak_25": "25–50%",
+        "moderate_50": "50–75%",
+        "good_75": "75–100%",
+        "strong_100": "Reconciled"
+      },
+      "forensic_rationale": "Persistent divergence requires tax reconciliation.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI10": {
+      "id": "CFI10",
+      "name": "CFO Less CapEx / PAT",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Higher",
+      "bands": {
+        "critical_0": "<0",
+        "weak_25": "0–0.50",
+        "moderate_50": "0.50–0.80",
+        "good_75": "0.80–1.20",
+        "strong_100": ">1.20"
+      },
+      "forensic_rationale": "Tests cash earnings after capital investment.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI11": {
+      "id": "CFI11",
+      "name": "Cash Conversion Trend",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Trend",
+      "direction": "Stable / improving",
+      "bands": {
+        "critical_0": "Strong deterioration",
+        "weak_25": "Moderate deterioration",
+        "moderate_50": "Flat",
+        "good_75": "Moderate improvement",
+        "strong_100": "Strong improvement"
+      },
+      "forensic_rationale": "Persistent deterioration is more informative than one-year noise.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI12": {
+      "id": "CFI12",
+      "name": "Working Capital Contribution to CFO",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower dependence",
+      "bands": {
+        "critical_0": ">100%",
+        "weak_25": "75–100%",
+        "moderate_50": "50–75%",
+        "good_75": "25–50%",
+        "strong_100": "<25%"
+      },
+      "forensic_rationale": "CFO mainly generated by temporary WC movements is less sustainable.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI13": {
+      "id": "CFI13",
+      "name": "Non-cash Operating Items / CFO",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower / explainable",
+      "bands": {
+        "critical_0": ">100%",
+        "weak_25": "50–100%",
+        "moderate_50": "25–50%",
+        "good_75": "10–25%",
+        "strong_100": "<10%"
+      },
+      "forensic_rationale": "Large non-cash reconciliation items warrant review.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI14": {
+      "id": "CFI14",
+      "name": "CFO / EBITDA Trend",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Trend",
+      "direction": "Stable / improving",
+      "bands": {
+        "critical_0": "Strong deterioration",
+        "weak_25": "Moderate deterioration",
+        "moderate_50": "Flat",
+        "good_75": "Moderate improvement",
+        "strong_100": "Strong improvement"
+      },
+      "forensic_rationale": "Tracks deterioration in cash realization.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "CFI15": {
+      "id": "CFI15",
+      "name": "Investing Cash Flow Anomaly",
+      "pillar": "Cash Flow Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Contextual",
+      "direction": "Explainable",
+      "bands": {
+        "critical_0": "Severe unexplained anomaly",
+        "weak_25": "Material anomaly",
+        "moderate_50": "Moderate anomaly",
+        "good_75": "Minor anomaly",
+        "strong_100": "Normal / reconciled"
+      },
+      "forensic_rationale": "Unusual investing flows can affect cash-quality interpretation.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ01": {
+      "id": "AQ01",
+      "name": "Total Accruals",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Scaled",
+      "direction": "Lower absolute/relative",
+      "bands": {
+        "critical_0": ">10% assets",
+        "weak_25": "5–10%",
+        "moderate_50": "2–5%",
+        "good_75": "0–2%",
+        "strong_100": "<0% / cash-supported"
+      },
+      "forensic_rationale": "Measures accounting profit not supported by cash.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ02": {
+      "id": "AQ02",
+      "name": "Total Accruals / Average Assets",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">10%",
+        "weak_25": "5–10%",
+        "moderate_50": "2–5%",
+        "good_75": "0–2%",
+        "strong_100": "<0%"
+      },
+      "forensic_rationale": "Scales accrual intensity by asset base.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ03": {
+      "id": "AQ03",
+      "name": "Sloan Accrual Ratio",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Supporting Evidence",
+      "scoring_type": "Established model",
+      "direction": "Higher accrual risk",
+      "bands": {
+        "critical_0": "Very high",
+        "weak_25": "High",
+        "moderate_50": "Moderate",
+        "good_75": "Low",
+        "strong_100": "Very low"
+      },
+      "forensic_rationale": "Established accrual-quality signal; exact published specification and calibration must be frozen.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ04": {
+      "id": "AQ04",
+      "name": "Working Capital Accruals / Assets",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">10%",
+        "weak_25": "5–10%",
+        "moderate_50": "2–5%",
+        "good_75": "0–2%",
+        "strong_100": "<0%"
+      },
+      "forensic_rationale": "Detects earnings effects concentrated in working capital.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ05": {
+      "id": "AQ05",
+      "name": "Non-cash Earnings Ratio",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower absolute",
+      "bands": {
+        "critical_0": ">50%",
+        "weak_25": "25–50%",
+        "moderate_50": "10–25%",
+        "good_75": "0–10%",
+        "strong_100": "Cash exceeds earnings"
+      },
+      "forensic_rationale": "Measures non-cash share of earnings.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ06": {
+      "id": "AQ06",
+      "name": "Accrual Trend",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Trend",
+      "direction": "Stable / lower",
+      "bands": {
+        "critical_0": "Strong deterioration",
+        "weak_25": "Moderate deterioration",
+        "moderate_50": "Flat",
+        "good_75": "Moderate improvement",
+        "strong_100": "Strong improvement"
+      },
+      "forensic_rationale": "Persistent deterioration is more concerning than isolated accruals.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ07": {
+      "id": "AQ07",
+      "name": "Accrual Volatility",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Statistical",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": "Very high",
+        "weak_25": "High",
+        "moderate_50": "Moderate",
+        "good_75": "Low",
+        "strong_100": "Very low"
+      },
+      "forensic_rationale": "High volatility may indicate unusual accounting adjustments.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ08": {
+      "id": "AQ08",
+      "name": "Change in Net Operating Assets",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Scaled",
+      "direction": "Lower / explainable",
+      "bands": {
+        "critical_0": ">20% assets",
+        "weak_25": "10–20%",
+        "moderate_50": "5–10%",
+        "good_75": "0–5%",
+        "strong_100": "Stable / supported"
+      },
+      "forensic_rationale": "Rapid NOA growth can accompany aggressive recognition/capitalization.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ09": {
+      "id": "AQ09",
+      "name": "Accruals vs Revenue Growth",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Gap",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">30 pp",
+        "weak_25": "20–30 pp",
+        "moderate_50": "10–20 pp",
+        "good_75": "0–10 pp",
+        "strong_100": "Accrual growth <= revenue growth"
+      },
+      "forensic_rationale": "Accrual growth materially above business growth is a warning.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ10": {
+      "id": "AQ10",
+      "name": "Accruals vs CFO Divergence",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Gap",
+      "direction": "Lower divergence",
+      "bands": {
+        "critical_0": "Strong divergence",
+        "weak_25": "Material divergence",
+        "moderate_50": "Moderate divergence",
+        "good_75": "Low divergence",
+        "strong_100": "Aligned"
+      },
+      "forensic_rationale": "Identifies earnings expansion without cash support.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ11": {
+      "id": "AQ11",
+      "name": "Depreciation / CapEx",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Stable / explainable",
+      "bands": {
+        "critical_0": "Extreme decline",
+        "weak_25": "Material decline",
+        "moderate_50": "Moderate change",
+        "good_75": "Stable",
+        "strong_100": "Stable with corroborating data"
+      },
+      "forensic_rationale": "Changes may indicate useful-life or capitalization issues.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ12": {
+      "id": "AQ12",
+      "name": "D&A / Gross PPE",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Stable / explainable",
+      "bands": {
+        "critical_0": "Very low unexplained",
+        "weak_25": "Low",
+        "moderate_50": "Normal",
+        "good_75": "High",
+        "strong_100": "High but corroborated"
+      },
+      "forensic_rationale": "Unusual depreciation intensity warrants useful-life review.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ13": {
+      "id": "AQ13",
+      "name": "Deferred Tax Contribution to PAT",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower / explainable",
+      "bands": {
+        "critical_0": ">50%",
+        "weak_25": "25–50%",
+        "moderate_50": "10–25%",
+        "good_75": "5–10%",
+        "strong_100": "<5%"
+      },
+      "forensic_rationale": "Large deferred-tax effects can alter earnings without current cash.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ14": {
+      "id": "AQ14",
+      "name": "Provision / Expense Ratio",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Trend",
+      "direction": "Stable / explainable",
+      "bands": {
+        "critical_0": "Sharp unexplained change",
+        "weak_25": "Material change",
+        "moderate_50": "Moderate change",
+        "good_75": "Minor change",
+        "strong_100": "Stable / supported"
+      },
+      "forensic_rationale": "Large estimate changes can affect expense timing.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "AQ15": {
+      "id": "AQ15",
+      "name": "Reserve Reversal Contribution",
+      "pillar": "Accrual & Accounting Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">25% PAT",
+        "weak_25": "10–25%",
+        "moderate_50": "5–10%",
+        "good_75": "0–5%",
+        "strong_100": "None"
+      },
+      "forensic_rationale": "Material reversals can inflate current earnings.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH01": {
+      "id": "WCH01",
+      "name": "DSO",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Days",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">120",
+        "weak_25": "90–120",
+        "moderate_50": "60–90",
+        "good_75": "30–60",
+        "strong_100": "<30"
+      },
+      "forensic_rationale": "Collection-period pressure; sector calibration required.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH02": {
+      "id": "WCH02",
+      "name": "DSO Change",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Days",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">30 days",
+        "weak_25": "15–30",
+        "moderate_50": "5–15",
+        "good_75": "0–5",
+        "strong_100": "Declining"
+      },
+      "forensic_rationale": "Detects deterioration in collections.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH03": {
+      "id": "WCH03",
+      "name": "Receivables / Revenue",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower / stable",
+      "bands": {
+        "critical_0": ">30%",
+        "weak_25": "20–30%",
+        "moderate_50": "10–20%",
+        "good_75": "5–10%",
+        "strong_100": "<5%"
+      },
+      "forensic_rationale": "Measures receivable intensity; sector calibration required.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH04": {
+      "id": "WCH04",
+      "name": "Inventory Days",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Days",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">180",
+        "weak_25": "120–180",
+        "moderate_50": "90–120",
+        "good_75": "60–90",
+        "strong_100": "<60"
+      },
+      "forensic_rationale": "Detects inventory buildup; sector calibration required.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH05": {
+      "id": "WCH05",
+      "name": "Inventory Growth vs Revenue Growth",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Gap",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">30 pp",
+        "weak_25": "20–30",
+        "moderate_50": "10–20",
+        "good_75": "0–10",
+        "strong_100": "Inventory growth <= revenue growth"
+      },
+      "forensic_rationale": "Detects stock buildup ahead of sales.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH06": {
+      "id": "WCH06",
+      "name": "Inventory Turnover",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Higher / stable",
+      "bands": {
+        "critical_0": "Sector calibrated",
+        "weak_25": "Sector calibrated",
+        "moderate_50": "Sector calibrated",
+        "good_75": "Sector calibrated",
+        "strong_100": "Sector calibrated"
+      },
+      "forensic_rationale": "Low turnover can indicate slow-moving or overstated inventory.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH07": {
+      "id": "WCH07",
+      "name": "DPO",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Days",
+      "direction": "Stable / explainable",
+      "bands": {
+        "critical_0": "Extreme increase",
+        "weak_25": "Material increase",
+        "moderate_50": "Moderate",
+        "good_75": "Stable",
+        "strong_100": "Stable with evidence"
+      },
+      "forensic_rationale": "Sharp increases may indicate liquidity pressure/supplier financing.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH08": {
+      "id": "WCH08",
+      "name": "Payables Growth vs COGS Growth",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Gap",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">30 pp",
+        "weak_25": "20–30",
+        "moderate_50": "10–20",
+        "good_75": "0–10",
+        "strong_100": "Payables growth <= COGS growth"
+      },
+      "forensic_rationale": "Detects supplier balances growing faster than activity.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH09": {
+      "id": "WCH09",
+      "name": "Cash Conversion Cycle",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Days",
+      "direction": "Lower / stable",
+      "bands": {
+        "critical_0": ">180",
+        "weak_25": "120–180",
+        "moderate_50": "90–120",
+        "good_75": "60–90",
+        "strong_100": "<60"
+      },
+      "forensic_rationale": "Lengthening cycle can indicate deterioration.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH10": {
+      "id": "WCH10",
+      "name": "Operating WC / Revenue",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower / stable",
+      "bands": {
+        "critical_0": ">30%",
+        "weak_25": "20–30%",
+        "moderate_50": "10–20%",
+        "good_75": "5–10%",
+        "strong_100": "<5%"
+      },
+      "forensic_rationale": "Measures working-capital intensity; sector calibration required.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH11": {
+      "id": "WCH11",
+      "name": "Working Capital Growth vs Revenue Growth",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Gap",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">30 pp",
+        "weak_25": "20–30",
+        "moderate_50": "10–20",
+        "good_75": "0–10",
+        "strong_100": "WC growth <= revenue growth"
+      },
+      "forensic_rationale": "Detects disproportionate WC buildup.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH12": {
+      "id": "WCH12",
+      "name": "Receivable Concentration Risk",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Contextual",
+      "direction": "Lower / explainable",
+      "bands": {
+        "critical_0": ">50%",
+        "weak_25": "30–50%",
+        "moderate_50": "20–30%",
+        "good_75": "10–20%",
+        "strong_100": "<10% / diversified"
+      },
+      "forensic_rationale": "High concentration increases collection dependency.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH13": {
+      "id": "WCH13",
+      "name": "Inventory Provision Coverage",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Context dependent",
+      "bands": {
+        "critical_0": "Sector calibrated",
+        "weak_25": "Sector calibrated",
+        "moderate_50": "Sector calibrated",
+        "good_75": "Sector calibrated",
+        "strong_100": "Sector calibrated"
+      },
+      "forensic_rationale": "Low provision coverage alongside aging inventory can be a valuation red flag.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH14": {
+      "id": "WCH14",
+      "name": "Contract Asset / Revenue",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower / explainable",
+      "bands": {
+        "critical_0": ">20%",
+        "weak_25": "10–20%",
+        "moderate_50": "5–10%",
+        "good_75": "1–5%",
+        "strong_100": "<1%"
+      },
+      "forensic_rationale": "High contract assets may indicate revenue recognized before billing rights.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "WCH15": {
+      "id": "WCH15",
+      "name": "Supplier Financing Indicators",
+      "pillar": "Working Capital Forensics",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Contextual",
+      "direction": "Lower / transparent",
+      "bands": {
+        "critical_0": "Material undisclosed",
+        "weak_25": "Material disclosed",
+        "moderate_50": "Moderate",
+        "good_75": "Minor",
+        "strong_100": "None / transparent"
+      },
+      "forensic_rationale": "Supplier financing can alter operating-cash interpretation.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI01": {
+      "id": "BSI01",
+      "name": "Asset Growth",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Trend",
+      "direction": "Sustainable / explainable",
+      "bands": {
+        "critical_0": ">30% unexplained",
+        "weak_25": "20–30%",
+        "moderate_50": "10–20%",
+        "good_75": "0–10%",
+        "strong_100": "Supported by revenue/cash"
+      },
+      "forensic_rationale": "Establishes balance-sheet expansion baseline.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI02": {
+      "id": "BSI02",
+      "name": "AQI",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Supporting Evidence",
+      "scoring_type": "Established model",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">1.40",
+        "weak_25": "1.20–1.40",
+        "moderate_50": "1.10–1.20",
+        "good_75": "1.00–1.10",
+        "strong_100": "<=1.00"
+      },
+      "forensic_rationale": "Beneish Asset Quality Index; higher values indicate deterioration.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI03": {
+      "id": "BSI03",
+      "name": "Intangibles / Total Assets",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower / explainable",
+      "bands": {
+        "critical_0": ">50%",
+        "weak_25": "30–50%",
+        "moderate_50": "15–30%",
+        "good_75": "5–15%",
+        "strong_100": "<5%"
+      },
+      "forensic_rationale": "High intangible intensity increases valuation/impairment judgment.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI04": {
+      "id": "BSI04",
+      "name": "Goodwill / Total Assets",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower / explainable",
+      "bands": {
+        "critical_0": ">30%",
+        "weak_25": "20–30%",
+        "moderate_50": "10–20%",
+        "good_75": "5–10%",
+        "strong_100": "<5%"
+      },
+      "forensic_rationale": "High goodwill concentration increases impairment sensitivity.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI05": {
+      "id": "BSI05",
+      "name": "Capitalized Development Costs / Assets",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower / explainable",
+      "bands": {
+        "critical_0": ">20%",
+        "weak_25": "10–20%",
+        "moderate_50": "5–10%",
+        "good_75": "1–5%",
+        "strong_100": "<1%"
+      },
+      "forensic_rationale": "Material capitalization can defer expense recognition.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI06": {
+      "id": "BSI06",
+      "name": "Capitalized Software / Revenue",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower / explainable",
+      "bands": {
+        "critical_0": ">20%",
+        "weak_25": "10–20%",
+        "moderate_50": "5–10%",
+        "good_75": "1–5%",
+        "strong_100": "<1%"
+      },
+      "forensic_rationale": "Large capitalization relative to revenue may defer expenses.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI07": {
+      "id": "BSI07",
+      "name": "PPE Growth vs Revenue Growth",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Gap",
+      "direction": "Lower / explainable",
+      "bands": {
+        "critical_0": ">30 pp",
+        "weak_25": "20–30",
+        "moderate_50": "10–20",
+        "good_75": "0–10",
+        "strong_100": "PPE growth <= revenue growth"
+      },
+      "forensic_rationale": "Detects asset buildup ahead of business growth.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI08": {
+      "id": "BSI08",
+      "name": "CapEx / Depreciation",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Context dependent",
+      "bands": {
+        "critical_0": "Extreme unexplained",
+        "weak_25": "High",
+        "moderate_50": "Moderate",
+        "good_75": "Normal",
+        "strong_100": "Supported by expansion"
+      },
+      "forensic_rationale": "Divergence can reflect expansion, under-depreciation or capitalization.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI09": {
+      "id": "BSI09",
+      "name": "Debt Growth vs Asset Growth",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Gap",
+      "direction": "Lower / explainable",
+      "bands": {
+        "critical_0": ">30 pp",
+        "weak_25": "20–30",
+        "moderate_50": "10–20",
+        "good_75": "0–10",
+        "strong_100": "Debt growth <= asset growth"
+      },
+      "forensic_rationale": "Identifies financing expansion outpacing assets.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI10": {
+      "id": "BSI10",
+      "name": "Off-Balance-Sheet Exposure",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Scaled",
+      "direction": "Lower / transparent",
+      "bands": {
+        "critical_0": ">30% assets",
+        "weak_25": "15–30%",
+        "moderate_50": "5–15%",
+        "good_75": "1–5%",
+        "strong_100": "<1%"
+      },
+      "forensic_rationale": "Material obligations can distort headline ratios.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI11": {
+      "id": "BSI11",
+      "name": "Contingent Liabilities / Equity",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower / transparent",
+      "bands": {
+        "critical_0": ">100%",
+        "weak_25": "50–100%",
+        "moderate_50": "20–50%",
+        "good_75": "5–20%",
+        "strong_100": "<5%"
+      },
+      "forensic_rationale": "Measures potential claims relative to capital.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI12": {
+      "id": "BSI12",
+      "name": "Lease Liabilities / Assets",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Context dependent",
+      "bands": {
+        "critical_0": ">30%",
+        "weak_25": "20–30%",
+        "moderate_50": "10–20%",
+        "good_75": "5–10%",
+        "strong_100": "<5%"
+      },
+      "forensic_rationale": "Captures material lease commitments; sector context required.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI13": {
+      "id": "BSI13",
+      "name": "Pension / Post-employment Deficit",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower / transparent",
+      "bands": {
+        "critical_0": ">30% equity",
+        "weak_25": "15–30%",
+        "moderate_50": "5–15%",
+        "good_75": "1–5%",
+        "strong_100": "<1%"
+      },
+      "forensic_rationale": "Identifies material actuarial obligations.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI14": {
+      "id": "BSI14",
+      "name": "Asset Impairment Reversals / PAT",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">50%",
+        "weak_25": "25–50%",
+        "moderate_50": "10–25%",
+        "good_75": "5–10%",
+        "strong_100": "<5%"
+      },
+      "forensic_rationale": "Detects earnings supported by impairment reversals.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "BSI15": {
+      "id": "BSI15",
+      "name": "Asset-to-Revenue Divergence",
+      "pillar": "Balance Sheet Integrity",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Gap",
+      "direction": "Lower / explainable",
+      "bands": {
+        "critical_0": ">30 pp",
+        "weak_25": "20–30",
+        "moderate_50": "10–20",
+        "good_75": "0–10",
+        "strong_100": "Aligned"
+      },
+      "forensic_rationale": "Asset growth materially ahead of revenue requires explanation.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GS01": {
+      "id": "GS01",
+      "name": "Revenue CAGR",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "CAGR",
+      "direction": "Sustainable / contextual",
+      "bands": {
+        "critical_0": "Severe decline",
+        "weak_25": "Decline",
+        "moderate_50": "Low growth",
+        "good_75": "Moderate growth",
+        "strong_100": "Strong sustainable growth"
+      },
+      "forensic_rationale": "Growth must be corroborated by cash and working capital.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GS02": {
+      "id": "GS02",
+      "name": "PAT CAGR",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "CAGR",
+      "direction": "Sustainable / contextual",
+      "bands": {
+        "critical_0": "Severe decline",
+        "weak_25": "Decline",
+        "moderate_50": "Low growth",
+        "good_75": "Moderate growth",
+        "strong_100": "Strong sustainable growth"
+      },
+      "forensic_rationale": "Earnings growth must be tested for recurrence and cash support.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GS03": {
+      "id": "GS03",
+      "name": "EBITDA CAGR",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "CAGR",
+      "direction": "Sustainable / contextual",
+      "bands": {
+        "critical_0": "Severe decline",
+        "weak_25": "Decline",
+        "moderate_50": "Low growth",
+        "good_75": "Moderate growth",
+        "strong_100": "Strong sustainable growth"
+      },
+      "forensic_rationale": "Operating earnings growth is tested against revenue and cash.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GS04": {
+      "id": "GS04",
+      "name": "Revenue Growth vs CFO Growth",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Gap",
+      "direction": "Lower divergence",
+      "bands": {
+        "critical_0": ">30 pp",
+        "weak_25": "20–30",
+        "moderate_50": "10–20",
+        "good_75": "0–10",
+        "strong_100": "CFO growth >= revenue growth"
+      },
+      "forensic_rationale": "Detects growth without cash expansion.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GS05": {
+      "id": "GS05",
+      "name": "Revenue Growth vs WC Growth",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Gap",
+      "direction": "Lower divergence",
+      "bands": {
+        "critical_0": ">30 pp",
+        "weak_25": "20–30",
+        "moderate_50": "10–20",
+        "good_75": "0–10",
+        "strong_100": "WC growth <= revenue growth"
+      },
+      "forensic_rationale": "Detects cash-intensive growth.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GS06": {
+      "id": "GS06",
+      "name": "Margin Sustainability",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Trend",
+      "direction": "Stable",
+      "bands": {
+        "critical_0": "Sharp unexplained deterioration",
+        "weak_25": "Material deterioration",
+        "moderate_50": "Flat",
+        "good_75": "Moderate improvement",
+        "strong_100": "Stable/improving with cash support"
+      },
+      "forensic_rationale": "Tests whether growth relies on unusual margin changes.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GS07": {
+      "id": "GS07",
+      "name": "ROIC / ROCE Trend",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Trend",
+      "direction": "Stable / improving",
+      "bands": {
+        "critical_0": "Strong deterioration",
+        "weak_25": "Moderate deterioration",
+        "moderate_50": "Flat",
+        "good_75": "Moderate improvement",
+        "strong_100": "Strong improvement"
+      },
+      "forensic_rationale": "Economic returns contextualize sustainability.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GS08": {
+      "id": "GS08",
+      "name": "Earnings Persistence",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Statistical / trend",
+      "direction": "Higher",
+      "bands": {
+        "critical_0": "Highly volatile",
+        "weak_25": "Volatile",
+        "moderate_50": "Moderate",
+        "good_75": "Persistent",
+        "strong_100": "Highly persistent"
+      },
+      "forensic_rationale": "Separates recurring from volatile/one-off earnings.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GS09": {
+      "id": "GS09",
+      "name": "Growth Funding Gap",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Contextual",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">100% externally funded",
+        "weak_25": "75–100%",
+        "moderate_50": "50–75%",
+        "good_75": "25–50%",
+        "strong_100": "<25%"
+      },
+      "forensic_rationale": "Identifies growth requiring external funding despite reported profits.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GS10": {
+      "id": "GS10",
+      "name": "Organic vs Acquired Growth",
+      "pillar": "Earnings Sustainability & Growth Quality",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Disclosure",
+      "direction": "Higher organic / transparent",
+      "bands": {
+        "critical_0": "Mostly acquired / unclear",
+        "weak_25": "Material acquired",
+        "moderate_50": "Mixed",
+        "good_75": "Mostly organic",
+        "strong_100": "Strong organic"
+      },
+      "forensic_rationale": "Separates underlying growth from acquisition-driven growth.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GD01": {
+      "id": "GD01",
+      "name": "Qualified Audit Opinion",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "efs_role": "Supporting Evidence",
+      "scoring_type": "Categorical",
+      "direction": "No qualification",
+      "bands": {
+        "critical_0": "Adverse/disclaimer",
+        "weak_25": "Qualified",
+        "moderate_50": "Emphasis with material concern",
+        "good_75": "Unmodified with limited emphasis",
+        "strong_100": "Clean/unmodified"
+      },
+      "forensic_rationale": "Formal auditor opinion is high-value external evidence.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GD02": {
+      "id": "GD02",
+      "name": "Key Audit Matter Severity",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "efs_role": "Supporting Evidence",
+      "scoring_type": "Categorical",
+      "direction": "Lower / transparent",
+      "bands": {
+        "critical_0": "Multiple critical reporting KAMs",
+        "weak_25": "Material KAMs",
+        "moderate_50": "Moderate KAMs",
+        "good_75": "Limited KAMs",
+        "strong_100": "No material reporting KAMs"
+      },
+      "forensic_rationale": "KAMs identify areas of significant auditor judgment.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GD03": {
+      "id": "GD03",
+      "name": "Auditor Change",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "efs_role": "Supporting Evidence",
+      "scoring_type": "Categorical",
+      "direction": "Stable / explainable",
+      "bands": {
+        "critical_0": "Unexplained abrupt change",
+        "weak_25": "Change with concerns",
+        "moderate_50": "Change disclosed",
+        "good_75": "Routine rotation",
+        "strong_100": "Stable"
+      },
+      "forensic_rationale": "Auditor changes require review of disclosed reasons.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GD04": {
+      "id": "GD04",
+      "name": "Audit Tenure / Rotation Anomaly",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "efs_role": "Supporting Evidence",
+      "scoring_type": "Categorical",
+      "direction": "Compliant / transparent",
+      "bands": {
+        "critical_0": "Material anomaly",
+        "weak_25": "Potential non-compliance",
+        "moderate_50": "Unclear",
+        "good_75": "Compliant",
+        "strong_100": "Compliant and transparent"
+      },
+      "forensic_rationale": "Unusual tenure/rotation patterns warrant review.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GD05": {
+      "id": "GD05",
+      "name": "Related Party Transactions / Revenue",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Ratio",
+      "direction": "Lower / transparent",
+      "bands": {
+        "critical_0": ">20%",
+        "weak_25": "10–20%",
+        "moderate_50": "5–10%",
+        "good_75": "1–5%",
+        "strong_100": "<1%"
+      },
+      "forensic_rationale": "Material RPTs require substance/pricing/disclosure review.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GD06": {
+      "id": "GD06",
+      "name": "Promoter / Insider Pledge",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "efs_role": "Supporting Evidence",
+      "scoring_type": "Ratio",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": ">50% holdings",
+        "weak_25": "25–50%",
+        "moderate_50": "10–25%",
+        "good_75": "1–10%",
+        "strong_100": "None"
+      },
+      "forensic_rationale": "High pledging can indicate financing pressure.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GD07": {
+      "id": "GD07",
+      "name": "Accounting Policy Change",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "efs_role": "Core Scoring",
+      "scoring_type": "Categorical",
+      "direction": "Transparent / explainable",
+      "bands": {
+        "critical_0": "Material unexplained",
+        "weak_25": "Material disclosed",
+        "moderate_50": "Moderate",
+        "good_75": "Minor",
+        "strong_100": "None"
+      },
+      "forensic_rationale": "Policy changes can affect earnings timing/comparability.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GD08": {
+      "id": "GD08",
+      "name": "Restatement / Prior Period Adjustments",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "efs_role": "Supporting Evidence",
+      "scoring_type": "Categorical",
+      "direction": "Lower",
+      "bands": {
+        "critical_0": "Repeated material",
+        "weak_25": "Material",
+        "moderate_50": "Moderate",
+        "good_75": "Minor",
+        "strong_100": "None"
+      },
+      "forensic_rationale": "Restatements are direct evidence of prior reporting reliability issues.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GD09": {
+      "id": "GD09",
+      "name": "Regulatory / Enforcement Action",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "efs_role": "Supporting Evidence",
+      "scoring_type": "Categorical",
+      "direction": "None / transparent",
+      "bands": {
+        "critical_0": "Major unresolved action",
+        "weak_25": "Material action",
+        "moderate_50": "Minor action",
+        "good_75": "Historical resolved",
+        "strong_100": "None"
+      },
+      "forensic_rationale": "External enforcement is strong corroborating evidence.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "GD10": {
+      "id": "GD10",
+      "name": "Litigation / Accounting Contingency Exposure",
+      "pillar": "Governance, Disclosure & External Evidence",
+      "efs_role": "Supporting Evidence",
+      "scoring_type": "Contextual",
+      "direction": "Lower / transparent",
+      "bands": {
+        "critical_0": "Material unresolved",
+        "weak_25": "Significant",
+        "moderate_50": "Moderate",
+        "good_75": "Minor",
+        "strong_100": "None"
+      },
+      "forensic_rationale": "Reporting-related disputes can signal unresolved accounting risk.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "MODEL01": {
+      "id": "MODEL01",
+      "name": "Beneish M-Score",
+      "pillar": "Established Model Signals",
+      "efs_role": "Supporting Evidence",
+      "scoring_type": "Established Model",
+      "direction": "Higher risk at less-negative/positive values",
+      "bands": {
+        "critical_0": ">-1.00",
+        "weak_25": "-1.50 to -1.00",
+        "moderate_50": "-1.78 to -1.50",
+        "good_75": "-2.22 to -1.78",
+        "strong_100": "<-2.22"
+      },
+      "forensic_rationale": "Foundational earnings-manipulation screening signal; show canonical -1.78 cutoff separately; never label it proof of fraud.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "MODEL02": {
+      "id": "MODEL02",
+      "name": "Sloan Accrual Model",
+      "pillar": "Established Model Signals",
+      "efs_role": "Supporting Evidence",
+      "scoring_type": "Established Model",
+      "direction": "Higher accrual risk",
+      "bands": {
+        "critical_0": "Very high",
+        "weak_25": "High",
+        "moderate_50": "Moderate",
+        "good_75": "Low",
+        "strong_100": "Very low"
+      },
+      "forensic_rationale": "Established accrual-quality signal; exact formula/bands must be frozen to selected source.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "MODEL03": {
+      "id": "MODEL03",
+      "name": "Altman Z-Score",
+      "pillar": "Established Model Signals",
+      "efs_role": "Cross-Validation",
+      "scoring_type": "Established Model",
+      "direction": "Higher distress risk",
+      "bands": {
+        "critical_0": "Severe distress",
+        "weak_25": "Distress",
+        "moderate_50": "Grey zone",
+        "good_75": "Healthy",
+        "strong_100": "Strong"
+      },
+      "forensic_rationale": "Financial-distress context; not evidence of accounting fraud by itself.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "MODEL04": {
+      "id": "MODEL04",
+      "name": "Piotroski F-Score",
+      "pillar": "Established Model Signals",
+      "efs_role": "Cross-Validation",
+      "scoring_type": "Established Model",
+      "direction": "Higher quality",
+      "bands": {
+        "critical_0": "0–2",
+        "weak_25": "3–4",
+        "moderate_50": "5",
+        "good_75": "6–7",
+        "strong_100": "8–9"
+      },
+      "forensic_rationale": "Financial-strength context; not itself a fraud score.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    },
+    "MODEL05": {
+      "id": "MODEL05",
+      "name": "Ohlson O-Score",
+      "pillar": "Established Model Signals",
+      "efs_role": "Cross-Validation",
+      "scoring_type": "Established Model",
+      "direction": "Higher default risk",
+      "bands": {
+        "critical_0": "Very high",
+        "weak_25": "High",
+        "moderate_50": "Moderate",
+        "good_75": "Low",
+        "strong_100": "Very low"
+      },
+      "forensic_rationale": "Distress/default context; not itself evidence of manipulation.",
+      "weight": "TBD",
+      "calibration_status": "Draft — validate on historical cases"
+    }
+  }
+}

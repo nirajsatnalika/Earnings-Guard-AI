@@ -1,78 +1,102 @@
 """Enhanced Multi-Factor Confidence Engine for the EFS™ Assessment Framework.
 
 Evaluates data confidence taking into account:
-- validation completeness
-- parser confidence
+- financial statement completeness
+- variable availability
+- validation status
 - mapping confidence
-- missing financial statements
-- missing variables
-- validation errors
+- model availability
+- rule evaluation completeness
 """
 
 import logging
-from app.calculations.efs.interfaces.base import IConfidenceEngine
-from app.calculations.efs.models.domain import EFSInputVariables, MethodologyConfig
+from typing import Dict, List, Tuple
+
+from app.calculations.efs.models.domain import (
+    ConfidenceResult,
+    EFSInputVariables,
+    MethodologyConfig,
+)
 
 logger = logging.getLogger(__name__)
 
 
-class ConfidenceEngine(IConfidenceEngine):
+class ConfidenceEngine:
     """Engine calculating multi-factor data confidence for forensic earnings quality assessment."""
 
     def calculate_confidence(
-        self, variables: EFSInputVariables, methodology: MethodologyConfig
-    ) -> float:
-        """Calculates confidence score (0 to 100) incorporating all input quality factors."""
-        logger.debug("Calculating EFS multi-factor confidence score for analysis_id=%s", variables.analysis_id)
-        factors = methodology.confidence_factors
+        self,
+        variables: EFSInputVariables,
+        methodology: MethodologyConfig,
+        total_vars_evaluated: int = 95,
+        total_vars_available: int = 95,
+        models_available_count: int = 5,
+    ) -> ConfidenceResult:
+        """Calculates structured confidence score, level, factors, and limitations."""
+        logger.debug("Calculating EFS multi-factor confidence for analysis_id=%s", variables.analysis_id)
+        
         confidence = 100.0
+        factors: Dict[str, float] = {}
+        limitations: List[str] = []
 
-        # 1. Validation Completeness & Module Presence
-        missing_modules = 0
-        if variables.validation_data is None:
-            missing_modules += 1
-        if variables.feature_data is None:
-            missing_modules += 1
-        if variables.ratio_data is None:
-            missing_modules += 1
-        if variables.beneish_data is None:
-            missing_modules += 1
+        # 1. Statement Completeness
+        stmt_flags = variables.statement_flags
+        missing_stmts = []
+        if not stmt_flags.get("has_income_statement", True):
+            missing_stmts.append("Income Statement")
+        if not stmt_flags.get("has_balance_sheet", True):
+            missing_stmts.append("Balance Sheet")
+        if not stmt_flags.get("has_cash_flow_statement", True):
+            missing_stmts.append("Cash Flow Statement")
 
-        module_penalty = missing_modules * factors.get("missing_variable_penalty", 5.0)
-        confidence -= module_penalty
+        if missing_stmts:
+            stmt_penalty = len(missing_stmts) * 20.0
+            confidence -= stmt_penalty
+            factors["statement_completeness_penalty"] = stmt_penalty
+            limitations.append(f"Missing core financial statements: {', '.join(missing_stmts)}.")
 
-        # 2. Missing Financial Statements
-        if variables.missing_financial_statements_count > 0:
-            confidence -= (
-                variables.missing_financial_statements_count
-                * factors.get("missing_statement_penalty", 20.0)
-            )
+        # 2. Variable Availability Ratio
+        avail_ratio = total_vars_available / max(total_vars_evaluated, 1)
+        if avail_ratio < 1.0:
+            var_penalty = round((1.0 - avail_ratio) * 30.0, 2)
+            confidence -= var_penalty
+            factors["variable_availability_penalty"] = var_penalty
+            missing_cnt = total_vars_evaluated - total_vars_available
+            limitations.append(f"{missing_cnt} out of {total_vars_evaluated} methodology variables were unavailable or missing.")
 
-        # 3. Missing Variables Count
-        if variables.missing_variables_count > 0:
-            confidence -= variables.missing_variables_count * 2.0
+        # 3. Model Availability
+        if models_available_count < 5:
+            model_penalty = (5 - models_available_count) * 5.0
+            confidence -= model_penalty
+            factors["model_availability_penalty"] = model_penalty
+            limitations.append(f"{5 - models_available_count} established model(s) could not be evaluated due to missing input components.")
 
-        # 4. Validation Errors Count
-        if variables.validation_errors_count > 0:
-            confidence -= (
-                variables.validation_errors_count
-                * factors.get("validation_error_penalty", 10.0)
-            )
-
-        # 5. Parser Confidence Deficit
-        if variables.parser_confidence < 100.0:
-            deficit = (100.0 - variables.parser_confidence) / 100.0
-            confidence -= deficit * factors.get("low_parser_confidence_penalty", 15.0)
-
-        # 6. Mapping Confidence Deficit
+        # 4. Mapping & Parser Quality
         if variables.mapping_confidence < 100.0:
-            deficit = (100.0 - variables.mapping_confidence) / 100.0
-            confidence -= deficit * 10.0
+            map_penalty = round((100.0 - variables.mapping_confidence) * 0.15, 2)
+            confidence -= map_penalty
+            factors["mapping_confidence_penalty"] = map_penalty
+            limitations.append(f"Line-item mapping confidence is {variables.mapping_confidence:.1f}%.")
 
         final_score = round(max(min(confidence, 100.0), 0.0), 2)
+        
+        if final_score >= 80.0:
+            level = "High"
+        elif final_score >= 50.0:
+            level = "Medium"
+        else:
+            level = "Low"
+
         logger.info(
-            "Confidence Engine evaluated score %.2f for analysis_id=%s",
+            "Confidence Engine evaluated score %.2f (%s) for analysis_id=%s",
             final_score,
+            level,
             variables.analysis_id,
         )
-        return final_score
+
+        return ConfidenceResult(
+            confidence_score=final_score,
+            confidence_level=level,
+            confidence_factors=factors,
+            limitations=limitations,
+        )
