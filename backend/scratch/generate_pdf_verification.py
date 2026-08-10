@@ -8,7 +8,7 @@ from datetime import datetime
 from app.calculations.efs.engine import EFSEngine
 from app.reports.report import jinja_env, WEASYPRINT_AVAILABLE, WEASYPRINT_ERROR, HTML
 
-def main():
+async def main():
     analysis_id = "sample_analysis_001"
     engine = EFSEngine()
     result = engine.run(analysis_id=analysis_id, input_payload={})
@@ -19,9 +19,14 @@ def main():
     print(f"Overall Score: {result.overall.score}")
     print(f"Score Status: {result.overall.score_status}")
     
+    from app.ai.provider import FallbackNarrativeProvider
+    res_dict = getattr(result, "__dict__", {})
+    narrative_res = await FallbackNarrativeProvider().generate_narrative(analysis_id, res_dict)
+
     template = jinja_env.get_template("report.html")
     html_content = template.render(
         assessment=result,
+        narrative=narrative_res,
         generated_at=datetime.utcnow().isoformat() + "Z",
     )
     
@@ -47,4 +52,5 @@ def main():
         print(f"WeasyPrint unavailable: {WEASYPRINT_ERROR}")
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+    asyncio.run(main())

@@ -108,6 +108,66 @@ export interface EFSResponse {
   audit_trail: AuditTrail
 }
 
+export interface KeyFindingNarrative {
+  rule_id?: string
+  title: string
+  what_observed: string
+  why_it_matters: string
+  supporting_evidence: string
+  legitimate_explanations: string[]
+  investigation_next_steps: string
+  evidence_refs: string[]
+}
+
+export interface PillarNarrative {
+  pillar_id: string
+  pillar_name: string
+  summary: string
+  positive_signals: string[]
+  adverse_signals: string[]
+  missing_evidence: string[]
+  investigation_areas: string[]
+}
+
+export interface ModelInterpretation {
+  model_id: string
+  model_name: string
+  meaning: string
+  role_in_efs: string
+  limitations: string
+}
+
+export interface CrossSignalAnalysisItem {
+  theme: string
+  converging_signals: string[]
+  explanation: string
+  cited_variables: string[]
+  cited_rules: string[]
+}
+
+export interface EFSNarrativeResponse {
+  narrative_version: string
+  analysis_id: string
+  assessment_id: string
+  generated_at: string
+  executive_summary: string
+  overall_interpretation: string
+  key_findings: KeyFindingNarrative[]
+  pillar_narratives: PillarNarrative[]
+  model_interpretations: ModelInterpretation[]
+  cross_signal_analysis: CrossSignalAnalysisItem[]
+  investigation_priorities: Record<string, any>[]
+  management_questions_context: Record<string, any>[]
+  data_limitations: string[]
+  methodology_note: string
+  disclaimer: string
+  provider_info: {
+    provider: string
+    model: string
+    fallback_used: boolean
+  }
+}
+
 export interface EFSRequestPayload {
   methodology_version?: string
   raw_variables?: Record<string, any>

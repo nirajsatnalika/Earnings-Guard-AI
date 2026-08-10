@@ -126,6 +126,38 @@
     {% endfor %}
   </section>
 
+  <!-- AI-Generated Forensic Interpretation -->
+  {% if narrative %}
+  <section class="section" id="ai-narrative" style="border: 1.5px solid #6366f1; padding: 12px; margin-top: 1em; border-radius: 4px; background: #fafafa;">
+    <h2 style="color: #3730a3; border-bottom: 2px solid #6366f1;">AI-GENERATED FORENSIC INTERPRETATION</h2>
+    <p><em>{{ narrative.disclaimer }}</em></p>
+    
+    <h3>Executive Forensic Summary</h3>
+    <p>{{ narrative.executive_summary }}</p>
+
+    <h3>Overall Score & Calibration Interpretation</h3>
+    <p>{{ narrative.overall_interpretation }}</p>
+
+    {% if narrative.key_findings %}
+      <h3>Key Findings Narrative</h3>
+      {% for kf in narrative.key_findings %}
+        <p><strong>{{ kf.title }}</strong> (Rule: {{ kf.rule_id or 'N/A' }})</p>
+        <p>• <em>Observed:</em> {{ kf.what_observed }}</p>
+        <p>• <em>Why It Matters:</em> {{ kf.why_it_matters }}</p>
+        <p>• <em>Next Steps:</em> {{ kf.investigation_next_steps }}</p>
+      {% endfor %}
+    {% endif %}
+
+    {% if narrative.cross_signal_analysis %}
+      <h3>Multi-Signal Convergence Analysis</h3>
+      {% for cs in narrative.cross_signal_analysis %}
+        <p><strong>Theme:</strong> {{ cs.theme }}</p>
+        <p>{{ cs.explanation }}</p>
+      {% endfor %}
+    {% endif %}
+  </section>
+  {% endif %}
+
   <!-- 13. Key Red Flags -->
   <section class="section" id="red-flags">
     <h2>Key Red Flags</h2>

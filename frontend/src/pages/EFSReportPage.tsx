@@ -20,6 +20,7 @@ import { RedFlagsPanel } from '../features/efs/components/RedFlagsPanel';
 import { ManagementQuestionsPanel } from '../features/efs/components/ManagementQuestionsPanel';
 import { ConfidencePanel } from '../features/efs/components/ConfidencePanel';
 import { AuditTrailPanel } from '../features/efs/components/AuditTrailPanel';
+import { AINarrativePanel } from '../features/efs/components/AINarrativePanel';
 
 export function EFSReportPage() {
   const { analysisId = 'sample_analysis_001' } = useParams<{ analysisId: string }>();
@@ -141,6 +142,9 @@ export function EFSReportPage() {
 
       {/* 8. Forensic Findings */}
       <ForensicFindingsPanel findings={assessment.forensic_findings} />
+
+      {/* 8.5. AI Forensic Interpretation */}
+      <AINarrativePanel analysisId={analysisId} />
 
       {/* 9. Management Questions */}
       <ManagementQuestionsPanel managementQuestions={assessment.management_questions} findings={assessment.forensic_findings} />

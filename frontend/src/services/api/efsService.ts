@@ -1,5 +1,5 @@
 import { apiClient, extractApiError } from './client'
-import type { EFSRequestPayload, EFSResponse } from '../../types/efs'
+import type { EFSRequestPayload, EFSResponse, EFSNarrativeResponse } from '../../types/efs'
 
 export class EFSService {
   /**
@@ -17,6 +17,21 @@ export class EFSService {
       return response.data
     } catch (error) {
       const message = extractApiError(error, `Failed to load EFS assessment for analysis ID ${analysisId}`)
+      throw new Error(message)
+    }
+  }
+
+  /**
+   * Fetches the AI Forensic Narrative explanation for a given analysis ID.
+   */
+  static async getNarrative(analysisId: string): Promise<EFSNarrativeResponse> {
+    try {
+      const response = await apiClient.post<EFSNarrativeResponse>(
+        `/api/v1/efs/${analysisId}/narrative`
+      )
+      return response.data
+    } catch (error) {
+      const message = extractApiError(error, `Failed to generate AI narrative for analysis ID ${analysisId}`)
       throw new Error(message)
     }
   }

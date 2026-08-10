@@ -80,9 +80,20 @@ async def generate_efs_report(analysis_id: str) -> StreamingResponse:
             ),
         )
 
+    # Generate narrative explanation using active provider or fallback
+    try:
+        from app.ai.provider import get_narrative_provider
+        provider = get_narrative_provider()
+        res_dict = result.to_dict() if hasattr(result, "to_dict") else getattr(result, "__dict__", {})
+        narrative_res = await provider.generate_narrative(analysis_id=analysis_id, assessment_dict=res_dict)
+    except Exception as n_err:
+        logger.warning("Could not generate AI narrative for report: %s", n_err)
+        narrative_res = None
+
     template = jinja_env.get_template("report.html")
     html_content = template.render(
         assessment=result,
+        narrative=narrative_res,
         generated_at=datetime.utcnow().isoformat() + "Z",
     )
     pdf_bytes = HTML(string=html_content).write_pdf()
