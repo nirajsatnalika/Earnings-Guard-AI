@@ -7,7 +7,7 @@ export interface CompanyDetails {
 }
 
 export interface UploadedStatement {
-  type: 'Balance Sheet' | 'Profit & Loss Statement' | 'Cash Flow Statement'
+  type: 'Balance Sheet' | 'Profit & Loss Statement' | 'Cash Flow Statement' | 'Annual Report' | 'Annual Report / Financial Statement'
   file: File | null
   progress: number
 }

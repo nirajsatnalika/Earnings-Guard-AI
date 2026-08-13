@@ -10,6 +10,7 @@ from app.api.v1.endpoints.normalize import router as normalize_router
 from app.api.v1.endpoints.features import router as features_router
 from app.calculations.efs.router import router as efs_router
 from app.reports.report import router as report_router
+from app.api.v1.endpoints.peer_intelligence import router as peer_intelligence_router
 
 api_router = APIRouter()
 api_router.include_router(system_router, tags=["system"])
@@ -20,3 +21,4 @@ api_router.include_router(normalize_router, prefix="/normalize", tags=["normaliz
 api_router.include_router(features_router, prefix="/features", tags=["features"])
 api_router.include_router(efs_router)
 api_router.include_router(report_router)
+api_router.include_router(peer_intelligence_router, prefix="/peer", tags=["peer_intelligence"])

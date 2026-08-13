@@ -16,13 +16,17 @@ async def upload_statements(
     balance_sheet: UploadFile | None = None,
     profit_loss: UploadFile | None = None,
     cash_flow: UploadFile | None = None,
+    annual_report: UploadFile | None = None,
+    file: UploadFile | None = None,
 ) -> UploadResponse:
-    """Accept up to three financial-statement uploads and store them on disk."""
+    """Accept financial statement/annual report uploads (PDF, XLSX, XLS, CSV) and store them on disk."""
     received: dict[str, tuple[str, bytes]] = {}
     for field_name, upload in (
         ("balance_sheet", balance_sheet),
         ("profit_loss", profit_loss),
         ("cash_flow", cash_flow),
+        ("annual_report", annual_report),
+        ("annual_report", file),
     ):
         if upload is None or not upload.filename:
             continue

@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react'
 import {
+  AutoAwesomeOutlined,
   CheckCircleOutline,
   ChevronRight,
+  CloudUploadOutlined,
   EditOutlined,
   InfoOutlined,
   PlayArrow,
   PlayCircleOutline,
+  TableChartOutlined,
 } from '@mui/icons-material'
 import {
   Alert,
@@ -33,15 +36,26 @@ import {
   TableHead,
   TableRow,
   TextField,
+  ToggleButton,
+  ToggleButtonGroup,
   Typography,
 } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { countries, financialYears, industries } from '../features/analysis/data'
-import { CompanyService, EFSService } from '../services/api'
+import { HumanReviewTable } from '../features/analysis/components/HumanReviewTable'
+import { UploadCard } from '../features/analysis/components/UploadCard'
+import {
+  CompanyService,
+  EFSService,
+  IngestionService,
+  UploadService,
+} from '../services/api'
+import type { CanonicalExtractedItem } from '../services/api'
 import type { CompanyRecord } from '../types/efs'
+import type { UploadedStatement } from '../features/analysis/types'
 import { useToast } from '../services/feedback'
 
-const steps = ['Company', 'Financial Data', 'Review & Validate', 'Run EFS']
+const steps = ['Company', 'Financial Data & Ingestion', 'Review & Validate', 'Run EFS']
 
 interface FinancialFormData {
   revenue: string
@@ -116,9 +130,23 @@ export function AnalyzeCompany() {
     financialYear: 'FY 2025–26',
   })
 
+  // Input Mode: MANUAL vs UPLOAD
+  const [inputMode, setInputMode] = useState<'MANUAL' | 'UPLOAD'>('MANUAL')
+
   // Financial Form State
   const [financials, setFinancials] = useState<FinancialFormData>(emptyFinancialForm)
   const [isDemoDataLoaded, setIsDemoDataLoaded] = useState<boolean>(false)
+
+  // Upload & Ingestion State
+  const [uploadedStatement, setUploadedStatement] = useState<UploadedStatement>({
+    type: 'Annual Report / Financial Statement',
+    file: null,
+    progress: 0,
+  })
+  const [isIngesting, setIsIngesting] = useState<boolean>(false)
+  const [scannedPdfMessage, setScannedPdfMessage] = useState<string | null>(null)
+  const [extractedItems, setExtractedItems] = useState<CanonicalExtractedItem[]>([])
+  const [ingestionAnalysisId, setIngestionAnalysisId] = useState<string>('')
 
   // Execution State
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
@@ -153,6 +181,74 @@ export function AnalyzeCompany() {
     setFinancials(demoFinancialData)
     setIsDemoDataLoaded(true)
     toast.notifySuccess('Demo financial data loaded successfully!')
+  }
+
+  // Handle Document Ingestion Workflow
+  const handleIngestDocument = async () => {
+    if (!uploadedStatement.file) {
+      toast.notifyError('Please select a PDF, Excel, or CSV document first.')
+      return
+    }
+
+    setIsIngesting(true)
+    setScannedPdfMessage(null)
+
+    try {
+      // 1. Upload file
+      const uploadRes = await UploadService.uploadStatements([
+        { statementType: 'Annual Report', file: uploadedStatement.file },
+      ])
+      setUploadedStatement((prev) => ({ ...prev, progress: 100 }))
+
+      // 2. Process Extraction & Normalization
+      const ingestRes = await IngestionService.processIngestion(uploadRes.analysisId)
+      setIngestionAnalysisId(uploadRes.analysisId)
+
+      if (ingestRes.is_scanned_pdf) {
+        setScannedPdfMessage(
+          ingestRes.scanned_pdf_message ||
+            'Scanned PDF detected. OCR support will be available in a future release.',
+        )
+        toast.notifyError('Scanned PDF detected. Text extraction deferred.')
+      } else {
+        setExtractedItems(ingestRes.extracted_items)
+        toast.notifySuccess(
+          `Extracted ${ingestRes.extracted_items.length} line items. Please review mappings below.`,
+        )
+      }
+    } catch (err) {
+      toast.notifyError(err instanceof Error ? err.message : 'Document ingestion failed.')
+    } finally {
+      setIsIngesting(false)
+    }
+  }
+
+  const handleConfirmIngestionReview = async () => {
+    if (!ingestionAnalysisId) {
+      toast.notifyError('No active document ingestion analysis found.')
+      return
+    }
+
+    try {
+      const confirmRes = await IngestionService.confirmReview(ingestionAnalysisId, extractedItems)
+      const confirmedVars = confirmRes.confirmed_raw_variables
+
+      // Merge confirmed variables into financial form
+      setFinancials((prev) => {
+        const next = { ...prev }
+        Object.entries(confirmedVars).forEach(([k, v]) => {
+          if (k in next) {
+            next[k as keyof FinancialFormData] = String(v)
+          }
+        })
+        return next
+      })
+
+      toast.notifySuccess('Confirmed financial mappings saved cleanly. Moving to review step.')
+      setActiveStep(2)
+    } catch (err) {
+      toast.notifyError(err instanceof Error ? err.message : 'Failed to confirm review choices.')
+    }
   }
 
   // Calculate Data Coverage
@@ -217,7 +313,6 @@ export function AnalyzeCompany() {
     setActiveStep(3)
 
     try {
-      // Build raw_variables payload preserving missing values
       const rawVars: Record<string, number> = {}
       Object.entries(financials).forEach(([key, val]) => {
         if (val !== undefined && val.trim() !== '') {
@@ -413,283 +508,385 @@ export function AnalyzeCompany() {
         </Card>
       )}
 
-      {/* STEP 1 — STRUCTURED FINANCIAL INPUT & DATA COVERAGE */}
+      {/* STEP 1 — FINANCIAL INPUT MODE: MANUAL VS UPLOAD & EXTRACT */}
       {activeStep === 1 && (
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 8 }}>
-            <Card>
-              <CardContent sx={{ p: { xs: 2, md: 3.5 } }}>
-                <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  justifyContent="space-between"
-                  alignItems={{ sm: 'center' }}
-                  spacing={1.5}
-                  sx={{ mb: 2.5 }}
+        <Stack spacing={3}>
+          <Card>
+            <CardContent sx={{ p: 2.5 }}>
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                justifyContent="space-between"
+                alignItems={{ sm: 'center' }}
+                spacing={2}
+              >
+                <Box>
+                  <Typography variant="h3">Financial Data Input Mode</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                    Select how to populate standard accounting inputs for forensic evaluation.
+                  </Typography>
+                </Box>
+                <ToggleButtonGroup
+                  value={inputMode}
+                  exclusive
+                  onChange={(_, val) => val && setInputMode(val)}
+                  size="small"
                 >
-                  <Box>
-                    <Typography variant="h2">Financial Statement Data</Typography>
-                    <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>
-                      Enter standard accounting figures. Missing fields are preserved as un-evaluated.
-                    </Typography>
-                  </Box>
+                  <ToggleButton value="MANUAL">
+                    <TableChartOutlined sx={{ mr: 1, fontSize: 18 }} />
+                    Manual Form Entry
+                  </ToggleButton>
+                  <ToggleButton value="UPLOAD">
+                    <CloudUploadOutlined sx={{ mr: 1, fontSize: 18 }} />
+                    Upload Document (PDF/Excel/CSV)
+                  </ToggleButton>
+                </ToggleButtonGroup>
+              </Stack>
+            </CardContent>
+          </Card>
+
+          {/* UPLOAD & EXTRACT MODE */}
+          {inputMode === 'UPLOAD' && (
+            <Stack spacing={3}>
+              <Grid container spacing={3}>
+                <Grid size={{ xs: 12, md: 7 }}>
+                  <UploadCard
+                    statement={uploadedStatement}
+                    onFileChange={(file) =>
+                      setUploadedStatement((prev) => ({ ...prev, file, progress: 0 }))
+                    }
+                    disabled={isIngesting}
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, md: 5 }}>
+                  <Card sx={{ height: '100%' }}>
+                    <CardContent sx={{ p: 2.5 }}>
+                      <Typography variant="h3" sx={{ mb: 1 }}>
+                        Local Extraction Engine
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                        Extracts text streams and table grids locally using PyMuPDF and openpyxl. No paid external APIs are called.
+                      </Typography>
+                      <Button
+                        variant="contained"
+                        fullWidth
+                        startIcon={isIngesting ? <CircularProgress size={18} color="inherit" /> : <AutoAwesomeOutlined />}
+                        onClick={handleIngestDocument}
+                        disabled={!uploadedStatement.file || isIngesting}
+                        sx={{ py: 1.2 }}
+                      >
+                        {isIngesting ? 'Extracting Document…' : 'Extract & Ingest Document'}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+
+              {scannedPdfMessage && (
+                <Alert severity="warning" icon={<InfoOutlined />}>
+                  {scannedPdfMessage}
+                </Alert>
+              )}
+
+              {extractedItems.length > 0 && (
+                <Stack spacing={2.5}>
+                  <HumanReviewTable
+                    items={extractedItems}
+                    onItemChange={(nextItems) => setExtractedItems(nextItems)}
+                  />
                   <Button
-                    variant="outlined"
-                    color="secondary"
-                    startIcon={<PlayCircleOutline />}
-                    onClick={handleLoadDemoData}
-                    size="small"
+                    variant="contained"
+                    color="primary"
+                    size="large"
+                    endIcon={<ChevronRight />}
+                    onClick={handleConfirmIngestionReview}
+                    sx={{ alignSelf: 'flex-end', px: 4 }}
                   >
-                    Load Demo Data
-                    <Chip
-                      label="DEMO DATA"
-                      size="small"
-                      color="warning"
-                      sx={{ ml: 1, height: 18, fontSize: '0.6rem', fontWeight: 800 }}
-                    />
+                    Confirm Review & Save Data
                   </Button>
                 </Stack>
+              )}
+            </Stack>
+          )}
 
-                {isDemoDataLoaded && (
-                  <Alert severity="info" icon={<InfoOutlined />} sx={{ mb: 2.5 }}>
-                    Loaded sample financial data for demonstration (<strong>DEMO DATA</strong>). You can edit any field.
-                  </Alert>
-                )}
-
-                <Stack spacing={3}>
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: 'primary.main' }}>
-                      INCOME STATEMENT & CASH FLOW
-                    </Typography>
-                    <Grid container spacing={2}>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Revenue / Net Sales"
-                          placeholder="e.g. 500000"
-                          value={financials.revenue}
-                          onChange={(e) => handleFieldChange('revenue', e.target.value)}
-                          fullWidth
+          {/* MANUAL FORM ENTRY MODE */}
+          {inputMode === 'MANUAL' && (
+            <Grid container spacing={3}>
+              <Grid size={{ xs: 12, md: 8 }}>
+                <Card>
+                  <CardContent sx={{ p: { xs: 2, md: 3.5 } }}>
+                    <Stack
+                      direction={{ xs: 'column', sm: 'row' }}
+                      justifyContent="space-between"
+                      alignItems={{ sm: 'center' }}
+                      spacing={1.5}
+                      sx={{ mb: 2.5 }}
+                    >
+                      <Box>
+                        <Typography variant="h2">Financial Statement Data</Typography>
+                        <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>
+                          Enter standard accounting figures. Missing fields are preserved as un-evaluated.
+                        </Typography>
+                      </Box>
+                      <Button
+                        variant="outlined"
+                        color="secondary"
+                        startIcon={<PlayCircleOutline />}
+                        onClick={handleLoadDemoData}
+                        size="small"
+                      >
+                        Load Demo Data
+                        <Chip
+                          label="DEMO DATA"
+                          size="small"
+                          color="warning"
+                          sx={{ ml: 1, height: 18, fontSize: '0.6rem', fontWeight: 800 }}
                         />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Previous Year Revenue"
-                          placeholder="e.g. 450000"
-                          value={financials.prior_revenue}
-                          onChange={(e) => handleFieldChange('prior_revenue', e.target.value)}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Cash Flow From Operations (CFO)"
-                          placeholder="e.g. 60000"
-                          value={financials.cfo}
-                          onChange={(e) => handleFieldChange('cfo', e.target.value)}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Profit After Tax (PAT) / Net Income"
-                          placeholder="e.g. 45000"
-                          value={financials.pat}
-                          onChange={(e) => handleFieldChange('pat', e.target.value)}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Cost of Goods Sold (COGS)"
-                          placeholder="e.g. 300000"
-                          value={financials.cogs}
-                          onChange={(e) => handleFieldChange('cogs', e.target.value)}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="EBIT / Operating Profit"
-                          placeholder="e.g. 70000"
-                          value={financials.ebit}
-                          onChange={(e) => handleFieldChange('ebit', e.target.value)}
-                          fullWidth
-                        />
-                      </Grid>
-                    </Grid>
-                  </Box>
-
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: 'primary.main' }}>
-                      BALANCE SHEET ITEMS
-                    </Typography>
-                    <Grid container spacing={2}>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Accounts Receivable"
-                          placeholder="e.g. 80000"
-                          value={financials.receivables}
-                          onChange={(e) => handleFieldChange('receivables', e.target.value)}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Previous Year Accounts Receivable"
-                          placeholder="e.g. 65000"
-                          value={financials.prior_receivables}
-                          onChange={(e) => handleFieldChange('prior_receivables', e.target.value)}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Inventory"
-                          placeholder="e.g. 50000"
-                          value={financials.inventory}
-                          onChange={(e) => handleFieldChange('inventory', e.target.value)}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Accounts Payable"
-                          placeholder="e.g. 40000"
-                          value={financials.payables}
-                          onChange={(e) => handleFieldChange('payables', e.target.value)}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Total Assets"
-                          placeholder="e.g. 600000"
-                          value={financials.total_assets}
-                          onChange={(e) => handleFieldChange('total_assets', e.target.value)}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Previous Year Total Assets"
-                          placeholder="e.g. 550000"
-                          value={financials.prior_total_assets}
-                          onChange={(e) => handleFieldChange('prior_total_assets', e.target.value)}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Total Debt"
-                          placeholder="e.g. 150000"
-                          value={financials.total_debt}
-                          onChange={(e) => handleFieldChange('total_debt', e.target.value)}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Shareholder Equity"
-                          placeholder="e.g. 350000"
-                          value={financials.equity}
-                          onChange={(e) => handleFieldChange('equity', e.target.value)}
-                          fullWidth
-                        />
-                      </Grid>
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <TextField
-                          label="Depreciation & Amortization"
-                          placeholder="e.g. 20000"
-                          value={financials.depreciation}
-                          onChange={(e) => handleFieldChange('depreciation', e.target.value)}
-                          fullWidth
-                        />
-                      </Grid>
-                    </Grid>
-                  </Box>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* DATA COVERAGE PANEL */}
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Card sx={{ position: 'sticky', top: 20 }}>
-              <CardContent sx={{ p: 2.5 }}>
-                <Typography variant="h3" sx={{ mb: 0.5 }}>
-                  Financial Data Coverage
-                </Typography>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2.5 }}>
-                  Data availability indicators computed from non-empty backend inputs.
-                </Typography>
-
-                <Stack spacing={2.5}>
-                  <Box>
-                    <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.75 }}>
-                      <Typography variant="body2" fontWeight={650}>
-                        Core financial data
-                      </Typography>
-                      <Typography variant="body2" fontWeight={750} color="primary.main">
-                        {coreCoveragePct}%
-                      </Typography>
+                      </Button>
                     </Stack>
-                    <LinearProgress
-                      variant="determinate"
-                      value={coreCoveragePct}
-                      sx={{ height: 7, borderRadius: 4 }}
-                    />
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                      {countFilled(coreFields)} of {coreFields.length} core fields entered
-                    </Typography>
-                  </Box>
 
-                  <Box>
-                    <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.75 }}>
-                      <Typography variant="body2" fontWeight={650}>
-                        Historical data
-                      </Typography>
-                      <Typography variant="body2" fontWeight={750} color="primary.main">
-                        {historicalCoveragePct}%
-                      </Typography>
+                    {isDemoDataLoaded && (
+                      <Alert severity="info" icon={<InfoOutlined />} sx={{ mb: 2.5 }}>
+                        Loaded sample financial data for demonstration (<strong>DEMO DATA</strong>). You can edit any field.
+                      </Alert>
+                    )}
+
+                    <Stack spacing={3}>
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: 'primary.main' }}>
+                          INCOME STATEMENT & CASH FLOW
+                        </Typography>
+                        <Grid container spacing={2}>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="Revenue / Net Sales"
+                              placeholder="e.g. 500000"
+                              value={financials.revenue}
+                              onChange={(e) => handleFieldChange('revenue', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="Previous Year Revenue"
+                              placeholder="e.g. 450000"
+                              value={financials.prior_revenue}
+                              onChange={(e) => handleFieldChange('prior_revenue', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="Cash Flow From Operations (CFO)"
+                              placeholder="e.g. 60000"
+                              value={financials.cfo}
+                              onChange={(e) => handleFieldChange('cfo', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="Profit After Tax (PAT) / Net Income"
+                              placeholder="e.g. 45000"
+                              value={financials.pat}
+                              onChange={(e) => handleFieldChange('pat', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="Cost of Goods Sold (COGS)"
+                              placeholder="e.g. 300000"
+                              value={financials.cogs}
+                              onChange={(e) => handleFieldChange('cogs', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="EBIT / Operating Profit"
+                              placeholder="e.g. 70000"
+                              value={financials.ebit}
+                              onChange={(e) => handleFieldChange('ebit', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                        </Grid>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: 'primary.main' }}>
+                          BALANCE SHEET ITEMS
+                        </Typography>
+                        <Grid container spacing={2}>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="Accounts Receivable"
+                              placeholder="e.g. 80000"
+                              value={financials.receivables}
+                              onChange={(e) => handleFieldChange('receivables', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="Previous Year Accounts Receivable"
+                              placeholder="e.g. 65000"
+                              value={financials.prior_receivables}
+                              onChange={(e) => handleFieldChange('prior_receivables', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="Inventory"
+                              placeholder="e.g. 50000"
+                              value={financials.inventory}
+                              onChange={(e) => handleFieldChange('inventory', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="Accounts Payable"
+                              placeholder="e.g. 40000"
+                              value={financials.payables}
+                              onChange={(e) => handleFieldChange('payables', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="Total Assets"
+                              placeholder="e.g. 600000"
+                              value={financials.total_assets}
+                              onChange={(e) => handleFieldChange('total_assets', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="Previous Year Total Assets"
+                              placeholder="e.g. 550000"
+                              value={financials.prior_total_assets}
+                              onChange={(e) => handleFieldChange('prior_total_assets', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="Total Debt"
+                              placeholder="e.g. 150000"
+                              value={financials.total_debt}
+                              onChange={(e) => handleFieldChange('total_debt', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="Shareholder Equity"
+                              placeholder="e.g. 350000"
+                              value={financials.equity}
+                              onChange={(e) => handleFieldChange('equity', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                          <Grid size={{ xs: 12, sm: 6 }}>
+                            <TextField
+                              label="Depreciation & Amortization"
+                              placeholder="e.g. 20000"
+                              value={financials.depreciation}
+                              onChange={(e) => handleFieldChange('depreciation', e.target.value)}
+                              fullWidth
+                            />
+                          </Grid>
+                        </Grid>
+                      </Box>
                     </Stack>
-                    <LinearProgress
-                      variant="determinate"
-                      value={historicalCoveragePct}
-                      color="secondary"
-                      sx={{ height: 7, borderRadius: 4 }}
-                    />
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                      {countFilled(historicalFields)} of {historicalFields.length} prior year fields entered
-                    </Typography>
-                  </Box>
+                  </CardContent>
+                </Card>
+              </Grid>
 
-                  <Box>
-                    <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.75 }}>
-                      <Typography variant="body2" fontWeight={650}>
-                        Disclosure data
-                      </Typography>
-                      <Typography variant="body2" fontWeight={750} color="primary.main">
-                        {disclosureCoveragePct}%
-                      </Typography>
+              {/* DATA COVERAGE PANEL */}
+              <Grid size={{ xs: 12, md: 4 }}>
+                <Card sx={{ position: 'sticky', top: 20 }}>
+                  <CardContent sx={{ p: 2.5 }}>
+                    <Typography variant="h3" sx={{ mb: 0.5 }}>
+                      Financial Data Coverage
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2.5 }}>
+                      Data availability indicators computed from non-empty backend inputs.
+                    </Typography>
+
+                    <Stack spacing={2.5}>
+                      <Box>
+                        <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.75 }}>
+                          <Typography variant="body2" fontWeight={650}>
+                            Core financial data
+                          </Typography>
+                          <Typography variant="body2" fontWeight={750} color="primary.main">
+                            {coreCoveragePct}%
+                          </Typography>
+                        </Stack>
+                        <LinearProgress
+                          variant="determinate"
+                          value={coreCoveragePct}
+                          sx={{ height: 7, borderRadius: 4 }}
+                        />
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                          {countFilled(coreFields)} of {coreFields.length} core fields entered
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.75 }}>
+                          <Typography variant="body2" fontWeight={650}>
+                            Historical data
+                          </Typography>
+                          <Typography variant="body2" fontWeight={750} color="primary.main">
+                            {historicalCoveragePct}%
+                          </Typography>
+                        </Stack>
+                        <LinearProgress
+                          variant="determinate"
+                          value={historicalCoveragePct}
+                          color="secondary"
+                          sx={{ height: 7, borderRadius: 4 }}
+                        />
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                          {countFilled(historicalFields)} of {historicalFields.length} prior year fields entered
+                        </Typography>
+                      </Box>
+
+                      <Box>
+                        <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.75 }}>
+                          <Typography variant="body2" fontWeight={650}>
+                            Disclosure data
+                          </Typography>
+                          <Typography variant="body2" fontWeight={750} color="primary.main">
+                            {disclosureCoveragePct}%
+                          </Typography>
+                        </Stack>
+                        <LinearProgress
+                          variant="determinate"
+                          value={disclosureCoveragePct}
+                          color="info"
+                          sx={{ height: 7, borderRadius: 4 }}
+                        />
+                        <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                          {countFilled(disclosureFields)} of {disclosureFields.length} disclosure fields entered
+                        </Typography>
+                      </Box>
+
+                      <Alert severity="info" icon={<InfoOutlined fontSize="small" />} sx={{ fontSize: '0.75rem' }}>
+                        Additional historical periods improve EFS coverage for trend and growth variables.
+                      </Alert>
                     </Stack>
-                    <LinearProgress
-                      variant="determinate"
-                      value={disclosureCoveragePct}
-                      color="info"
-                      sx={{ height: 7, borderRadius: 4 }}
-                    />
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-                      {countFilled(disclosureFields)} of {disclosureFields.length} disclosure fields entered
-                    </Typography>
-                  </Box>
-
-                  <Alert severity="info" icon={<InfoOutlined fontSize="small" />} sx={{ fontSize: '0.75rem' }}>
-                    Additional historical periods improve EFS coverage for trend and growth variables.
-                  </Alert>
-                </Stack>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
+                  </CardContent>
+                </Card>
+              </Grid>
+            </Grid>
+          )}
+        </Stack>
       )}
 
       {/* STEP 2 — REVIEW & VALIDATE */}
@@ -816,7 +1013,7 @@ export function AnalyzeCompany() {
             </Button>
           )}
 
-          {activeStep === 1 && (
+          {activeStep === 1 && inputMode === 'MANUAL' && (
             <Button
               variant="contained"
               endIcon={<ChevronRight />}

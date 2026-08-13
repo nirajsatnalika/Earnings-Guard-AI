@@ -27,9 +27,10 @@ STATEMENT_FIELDS: dict[str, str] = {
     "balance_sheet": "Balance Sheet",
     "profit_loss": "Profit & Loss Statement",
     "cash_flow": "Cash Flow Statement",
+    "annual_report": "Annual Report",
 }
 
-ACCEPTED_EXTENSIONS: tuple[str, ...] = (".xlsx", ".xls", ".csv")
+ACCEPTED_EXTENSIONS: tuple[str, ...] = (".xlsx", ".xls", ".csv", ".pdf")
 
 
 def _human_size(num_bytes: int) -> str:

@@ -4,7 +4,7 @@ from pathlib import Path
 
 MAX_FILE_SIZE = 25 * 1024 * 1024
 CHUNK_SIZE = 1024 * 1024
-ALLOWED_UPLOAD_EXTENSIONS = frozenset({".xlsx", ".xls", ".csv"})
+ALLOWED_UPLOAD_EXTENSIONS = frozenset({".xlsx", ".xls", ".csv", ".pdf"})
 
 
 def sanitize_filename(filename: str | None) -> str:

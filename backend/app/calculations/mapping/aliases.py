@@ -109,6 +109,8 @@ ALIASES: dict[str, str] = {
 
     # --- Operating Cash Flow ---
     "Cash from Operations": "Operating Cash Flow",
+    "Cash Flow From Operations": "Operating Cash Flow",
+    "Cash Flow from Operating Activities": "Operating Cash Flow",
     "CFO": "Operating Cash Flow",
     "Net Cash from Operating Activities": "Operating Cash Flow",
     "Cash Generated from Operations": "Operating Cash Flow",
