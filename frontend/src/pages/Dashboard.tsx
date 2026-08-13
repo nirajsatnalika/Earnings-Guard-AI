@@ -1,41 +1,294 @@
-import type { ReactNode } from 'react'
-import { ArrowDownward, ArrowUpward, ChevronRight, MoreHoriz, ShieldOutlined, TrendingUp } from '@mui/icons-material'
-import { Box, Button, Card, CardContent, Chip, Grid, IconButton, LinearProgress, Stack, Typography } from '@mui/material'
-import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  IconButton,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Tooltip,
+  Typography,
+} from '@mui/material'
+import {
+  AddOutlined,
+  OpenInNew,
+  PlayCircleOutline,
+  Refresh,
+  ShieldOutlined,
+  VisibilityOutlined,
+} from '@mui/icons-material'
+import { AssessmentService } from '../services/api/assessmentService'
+import { EFSService } from '../services/api/efsService'
+import type { AssessmentListItem } from '../types/efs'
+import { useToast } from '../services/feedback'
 
-const chartData = [
-  { month: 'Feb', score: 64 }, { month: 'Mar', score: 68 }, { month: 'Apr', score: 66 },
-  { month: 'May', score: 73 }, { month: 'Jun', score: 71 }, { month: 'Jul', score: 82 },
-]
-const companies = [
-  { ticker: 'NVDA', name: 'NVIDIA Corporation', score: 92, change: '+4.8%', status: 'Low risk', color: 'success' as const },
-  { ticker: 'MSFT', name: 'Microsoft Corporation', score: 87, change: '+2.1%', status: 'Low risk', color: 'success' as const },
-  { ticker: 'TSLA', name: 'Tesla, Inc.', score: 61, change: '-3.6%', status: 'Watch', color: 'warning' as const },
-  { ticker: 'META', name: 'Meta Platforms, Inc.', score: 78, change: '+1.4%', status: 'Moderate', color: 'info' as const },
-]
-
-function MetricCard({ label, value, detail, positive = true, icon }: { label: string; value: string; detail: string; positive?: boolean; icon: ReactNode }) {
-  return <Card sx={{ height: '100%' }}><CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}><Stack direction="row" justifyContent="space-between" alignItems="flex-start"><Typography variant="body2" color="text.secondary">{label}</Typography><Box sx={{ color: 'primary.main', bgcolor: 'rgba(99,91,255,.1)', p: .75, borderRadius: 1.5, display: 'flex' }}>{icon}</Box></Stack><Typography sx={{ mt: 2, fontSize: '1.75rem', fontWeight: 750, letterSpacing: '-.04em' }}>{value}</Typography><Stack direction="row" spacing={.5} alignItems="center" sx={{ mt: .75 }}><Box sx={{ color: positive ? 'success.main' : 'error.main', display: 'flex' }}>{positive ? <ArrowUpward sx={{ fontSize: 14 }} /> : <ArrowDownward sx={{ fontSize: 14 }} />}</Box><Typography variant="caption" color={positive ? 'success.main' : 'error.main'}>{detail}</Typography><Typography variant="caption" color="text.secondary">vs last month</Typography></Stack></CardContent></Card>
+const SAMPLE_DEMO_INPUT = {
+  methodology_version: '1.0',
+  statement_flags: {
+    has_cash_flow_statement: true,
+    has_balance_sheet: true,
+    has_income_statement: true,
+  },
+  raw_variables: {
+    revenue: 500000.0,
+    prior_revenue: 450000.0,
+    receivables: 80000.0,
+    prior_receivables: 65000.0,
+    cfo: 60000.0,
+    pat: 45000.0,
+    cogs: 300000.0,
+    inventory: 50000.0,
+    payables: 40000.0,
+    total_assets: 600000.0,
+    prior_total_assets: 550000.0,
+    depreciation: 20000.0,
+    total_debt: 150000.0,
+    equity: 350000.0,
+    ebit: 70000.0,
+  },
 }
 
 export function Dashboard() {
-  return <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1500, mx: 'auto' }}>
-    <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ sm: 'center' }} spacing={2} sx={{ mb: 3.5 }}>
-      <Box><Typography variant="h1">Good morning, Alex</Typography><Typography color="text.secondary" sx={{ mt: .5 }}>Here is your portfolio intelligence for Tuesday, July 22, 2026.</Typography></Box>
-      <Button variant="contained" startIcon={<ShieldOutlined />} href="/analysis/new">Run new analysis</Button>
-    </Stack>
+  const navigate = useNavigate()
+  const toast = useToast()
+  const [assessments, setAssessments] = useState<AssessmentListItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [demoLoading, setDemoLoading] = useState(false)
 
-    <Grid container spacing={2} sx={{ mb: 2 }}>
-      <Grid size={{ xs: 12, sm: 6, lg: 3 }}><MetricCard label="Portfolio health" value="84 / 100" detail="6.2%" icon={<ShieldOutlined fontSize="small" />} /></Grid>
-      <Grid size={{ xs: 12, sm: 6, lg: 3 }}><MetricCard label="Earnings reviewed" value="128" detail="12.5%" icon={<TrendingUp fontSize="small" />} /></Grid>
-      <Grid size={{ xs: 12, sm: 6, lg: 3 }}><MetricCard label="Active watchlist" value="24" detail="3.1%" icon={<ShieldOutlined fontSize="small" />} /></Grid>
-      <Grid size={{ xs: 12, sm: 6, lg: 3 }}><MetricCard label="Risk alerts" value="03" detail="1 new" positive={false} icon={<ShieldOutlined fontSize="small" />} /></Grid>
-    </Grid>
+  const fetchRecent = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await AssessmentService.listAssessments(1, 10)
+      setAssessments(data.items)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load recent assessments')
+    } finally {
+      setLoading(false)
+    }
+  }
 
-    <Grid container spacing={2}>
-      <Grid size={{ xs: 12, lg: 8 }}><Card sx={{ height: '100%' }}><CardContent sx={{ p: 2.5 }}><Stack direction="row" justifyContent="space-between" alignItems="flex-start"><Box><Typography variant="h3">Portfolio health score</Typography><Typography variant="body2" color="text.secondary" sx={{ mt: .5 }}>Weighted confidence across your monitored companies</Typography></Box><Chip label="Last 6 months" size="small" variant="outlined" /></Stack><Box sx={{ height: 260, mt: 2 }}><ResponsiveContainer width="100%" height="100%"><AreaChart data={chartData} margin={{ top: 15, right: 8, left: -22, bottom: 0 }}><defs><linearGradient id="scoreFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#635bff" stopOpacity={.22} /><stop offset="100%" stopColor="#635bff" stopOpacity={0} /></linearGradient></defs><XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#8b95a7', fontSize: 11 }} /><YAxis domain={[40, 100]} axisLine={false} tickLine={false} tick={{ fill: '#8b95a7', fontSize: 11 }} /><Tooltip contentStyle={{ border: '1px solid #e7eaf0', borderRadius: 8, boxShadow: '0 4px 12px rgba(0,0,0,.08)' }} /><Area type="monotone" dataKey="score" stroke="#635bff" strokeWidth={2.5} fill="url(#scoreFill)" /></AreaChart></ResponsiveContainer></Box></CardContent></Card></Grid>
-      <Grid size={{ xs: 12, lg: 4 }}><Card sx={{ height: '100%' }}><CardContent sx={{ p: 2.5 }}><Stack direction="row" justifyContent="space-between" alignItems="center"><Box><Typography variant="h3">Upcoming earnings</Typography><Typography variant="body2" color="text.secondary" sx={{ mt: .5 }}>Next 7 days</Typography></Box><IconButton size="small"><MoreHoriz /></IconButton></Stack><Stack spacing={2.25} sx={{ mt: 3 }}>{[['GOOGL', 'Jul 23', 'After close'], ['AMZN', 'Jul 24', 'After close'], ['AAPL', 'Jul 25', 'After close'], ['INTC', 'Jul 28', 'After close']].map(([ticker, date, time]) => <Stack key={ticker} direction="row" alignItems="center" spacing={1.5}><Box sx={{ width: 34, height: 34, borderRadius: 1.5, display: 'grid', placeItems: 'center', bgcolor: '#f0f1ff', color: 'primary.main', fontSize: 10, fontWeight: 800 }}>{ticker.slice(0, 2)}</Box><Box sx={{ flex: 1 }}><Typography fontSize=".8rem" fontWeight={700}>{ticker}</Typography><Typography variant="caption" color="text.secondary">{time}</Typography></Box><Typography variant="body2" fontWeight={650}>{date}</Typography></Stack>)}</Stack><Button fullWidth endIcon={<ChevronRight />} sx={{ mt: 2.5, justifyContent: 'space-between' }}>View earnings calendar</Button></CardContent></Card></Grid>
-      <Grid size={{ xs: 12 }}><Card><CardContent sx={{ p: 2.5 }}><Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}><Box><Typography variant="h3">Watchlist overview</Typography><Typography variant="body2" color="text.secondary" sx={{ mt: .5 }}>Real-time risk signals for your highest-priority companies</Typography></Box><Button endIcon={<ChevronRight />}>View all</Button></Stack><Box sx={{ overflowX: 'auto' }}><Box sx={{ minWidth: 620 }}><Stack direction="row" sx={{ px: 1.5, pb: 1, color: 'text.secondary' }}><Typography variant="caption" sx={{ width: '34%' }}>COMPANY</Typography><Typography variant="caption" sx={{ width: '22%' }}>GUARD SCORE</Typography><Typography variant="caption" sx={{ width: '22%' }}>STOCK MOVE</Typography><Typography variant="caption">STATUS</Typography></Stack>{companies.map((company) => <Stack key={company.ticker} direction="row" alignItems="center" sx={{ px: 1.5, py: 1.5, borderTop: 1, borderColor: 'divider' }}><Box sx={{ width: '34%' }}><Typography fontWeight={750} fontSize=".82rem">{company.ticker}</Typography><Typography variant="caption" color="text.secondary" fontWeight={500}>{company.name}</Typography></Box><Box sx={{ width: '22%', pr: 3 }}><Stack direction="row" alignItems="center" spacing={1}><Typography fontWeight={750} fontSize=".82rem">{company.score}</Typography><LinearProgress variant="determinate" value={company.score} sx={{ flex: 1, height: 5, borderRadius: 4, bgcolor: '#eceef5', '& .MuiLinearProgress-bar': { borderRadius: 4, bgcolor: company.score > 80 ? 'success.main' : 'warning.main' } }} /></Stack></Box><Typography sx={{ width: '22%', color: company.change.startsWith('+') ? 'success.main' : 'error.main', fontSize: '.8rem', fontWeight: 700 }}>{company.change}</Typography><Chip label={company.status} color={company.color} size="small" variant="outlined" /></Stack>)}</Box></Box></CardContent></Card></Grid>
-    </Grid>
-  </Box>
+  useEffect(() => {
+    fetchRecent()
+  }, [])
+
+  const handleLoadDemoAssessment = async () => {
+    setDemoLoading(true)
+    try {
+      const demoId = `demo_${Date.now()}`
+      await EFSService.getAssessment(demoId, SAMPLE_DEMO_INPUT)
+      toast.notifySuccess('Demo assessment created successfully!')
+      navigate(`/assessments/${demoId}`)
+    } catch (err) {
+      toast.notifyError(err instanceof Error ? err.message : 'Failed to create demo assessment')
+    } finally {
+      setDemoLoading(false)
+    }
+  }
+
+  const formatDate = (iso: string | null) => {
+    if (!iso) return '—'
+    return new Date(iso).toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
+  }
+
+  return (
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1400, mx: 'auto' }}>
+      <Stack
+        direction={{ xs: 'column', sm: 'row' }}
+        justifyContent="space-between"
+        alignItems={{ sm: 'center' }}
+        spacing={2}
+        sx={{ mb: 3.5 }}
+      >
+        <Box>
+          <Stack direction="row" alignItems="center" spacing={1.5}>
+            <Typography variant="h1">EarningsGuard™ AI</Typography>
+            <Chip label="EFS Engine v1.0" color="primary" size="small" variant="outlined" />
+          </Stack>
+          <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+            Forensic Financial Intelligence — Institutional Earnings Quality & Manipulation Detection
+          </Typography>
+        </Box>
+        <Stack direction="row" spacing={1.5} alignItems="center">
+          <Button
+            variant="outlined"
+            color="secondary"
+            startIcon={<PlayCircleOutline />}
+            onClick={handleLoadDemoAssessment}
+            disabled={demoLoading}
+          >
+            {demoLoading ? 'Loading Demo…' : 'Load Demo Assessment'}
+            <Chip
+              label="DEMO DATA"
+              size="small"
+              color="warning"
+              sx={{ ml: 1, height: 20, fontSize: '0.65rem', fontWeight: 800 }}
+            />
+          </Button>
+          <Button
+            variant="contained"
+            startIcon={<AddOutlined />}
+            onClick={() => navigate('/analysis/new')}
+          >
+            New Assessment
+          </Button>
+        </Stack>
+      </Stack>
+
+      {error && (
+        <Alert severity="error" sx={{ mb: 3 }} action={<Button color="inherit" size="small" onClick={fetchRecent}>Retry</Button>}>
+          {error}
+        </Alert>
+      )}
+
+      <Card>
+        <CardContent sx={{ p: 2.5 }}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+            <Box>
+              <Typography variant="h3">Recent Assessments</Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                Persisted forensic snapshots evaluated by the EFS™ deterministic engine
+              </Typography>
+            </Box>
+            <Tooltip title="Refresh">
+              <IconButton onClick={fetchRecent} disabled={loading}>
+                <Refresh fontSize="small" />
+              </IconButton>
+            </Tooltip>
+          </Stack>
+
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress size={36} />
+            </Box>
+          ) : assessments.length === 0 ? (
+            <Box
+              sx={{
+                py: 6,
+                px: 2,
+                textAlign: 'center',
+                bgcolor: 'rgba(248, 250, 252, 0.6)',
+                borderRadius: 2,
+                border: '1px dashed #cbd5e1',
+              }}
+            >
+              <ShieldOutlined sx={{ fontSize: 48, color: 'text.secondary', mb: 1.5, opacity: 0.5 }} />
+              <Typography variant="h6" fontWeight={700} sx={{ mb: 0.5 }}>
+                No assessments yet
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3, maxWidth: 450, mx: 'auto' }}>
+                Start your first forensic financial assessment to evaluate earnings quality, accrual anomalies, and statement manipulation signals.
+              </Typography>
+              <Stack direction="row" spacing={2} justifyContent="center">
+                <Button variant="contained" onClick={() => navigate('/analysis/new')}>
+                  Create Assessment
+                </Button>
+                <Button
+                  variant="outlined"
+                  onClick={handleLoadDemoAssessment}
+                  disabled={demoLoading}
+                >
+                  Load Demo Assessment
+                  <Chip
+                    label="DEMO DATA"
+                    size="small"
+                    color="warning"
+                    sx={{ ml: 1, height: 18, fontSize: '0.6rem', fontWeight: 800 }}
+                  />
+                </Button>
+              </Stack>
+            </Box>
+          ) : (
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem' }}>ANALYSIS ID</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem' }}>ASSESSMENT STATUS</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem' }}>EFS STATUS</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem' }}>VARIABLES</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem' }}>RULES TRIGGERED</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem' }}>DATE</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontSize: '0.7rem' }}>ACTIONS</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {assessments.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      hover
+                      sx={{ cursor: 'pointer' }}
+                      onClick={() => navigate(`/assessments/${row.analysis_id}`)}
+                    >
+                      <TableCell sx={{ fontWeight: 700, fontFamily: 'monospace', fontSize: '0.82rem' }}>
+                        {row.analysis_id}
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={row.assessment_status}
+                          color={row.assessment_status === 'COMPLETED' ? 'success' : 'default'}
+                          size="small"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label="Calibration Pending"
+                          size="small"
+                          variant="outlined"
+                          sx={{ fontSize: '0.7rem', color: 'warning.main', borderColor: 'warning.main' }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={650}>
+                          {row.variables_evaluated ?? 95} evaluated
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight={700}>
+                          {row.rules_triggered ?? 0}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2">{formatDate(row.completed_at || row.created_at)}</Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Stack direction="row" onClick={(e) => e.stopPropagation()}>
+                          <Tooltip title="View Assessment">
+                            <IconButton size="small" onClick={() => navigate(`/assessments/${row.analysis_id}`)}>
+                              <VisibilityOutlined fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="View Report PDF">
+                            <IconButton size="small" onClick={() => navigate(`/assessments/${row.analysis_id}/report`)}>
+                              <OpenInNew fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </CardContent>
+      </Card>
+    </Box>
+  )
 }
+

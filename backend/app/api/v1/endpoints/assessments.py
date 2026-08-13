@@ -109,7 +109,7 @@ async def get_assessment(
     Reads from DB snapshot. Does NOT re-run EFSEngine.
     Returns HTTP 404 if assessment not found or not yet completed.
     """
-    assessment = _repository.get_assessment_by_id(db, assessment_id)
+    assessment = _repository.get_assessment_by_id(db, assessment_id) or _repository.get_assessment_by_analysis_id(db, assessment_id)
     if not assessment:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

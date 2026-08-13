@@ -1,88 +1,844 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { CheckCircleOutline, ChevronLeft, ChevronRight, ErrorOutline, InfoOutlined, PlayArrow, WarningAmberOutlined } from '@mui/icons-material'
-import { Alert, Box, Button, Card, CardContent, Chip, FormControl, InputLabel, LinearProgress, MenuItem, Select, Stack, Step, StepLabel, Stepper, TextField, Typography } from '@mui/material'
+import { useEffect, useState } from 'react'
+import {
+  CheckCircleOutline,
+  ChevronRight,
+  EditOutlined,
+  InfoOutlined,
+  PlayArrow,
+  PlayCircleOutline,
+} from '@mui/icons-material'
+import {
+  Alert,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  CircularProgress,
+  FormControl,
+  Grid,
+  InputLabel,
+  LinearProgress,
+  MenuItem,
+  Paper,
+  Select,
+  Stack,
+  Step,
+  StepLabel,
+  Stepper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import { analysisChecklist, countries, financialYears, industries, initialMappings } from '../features/analysis/data'
-import { MappingTable } from '../features/analysis/components/MappingTable'
-import { UploadCard } from '../features/analysis/components/UploadCard'
-import type { AnalysisStep, CompanyDetails, FieldMapping, UploadedStatement } from '../features/analysis/types'
-import { UploadService, type UploadProgress } from '../services/api'
+import { countries, financialYears, industries } from '../features/analysis/data'
+import { CompanyService, EFSService } from '../services/api'
+import type { CompanyRecord } from '../types/efs'
 import { useToast } from '../services/feedback'
 
-const steps = ['Company Information', 'Upload Statements', 'Field Mapping', 'Validation', 'Analysis Running']
-const initialCompany: CompanyDetails = { companyName: '', stockSymbol: '', industry: '', country: '', financialYear: '' }
-const statementTypes: UploadedStatement['type'][] = ['Balance Sheet', 'Profit & Loss Statement', 'Cash Flow Statement']
+const steps = ['Company', 'Financial Data', 'Review & Validate', 'Run EFS']
+
+interface FinancialFormData {
+  revenue: string
+  prior_revenue: string
+  receivables: string
+  prior_receivables: string
+  cfo: string
+  pat: string
+  cogs: string
+  inventory: string
+  payables: string
+  total_assets: string
+  prior_total_assets: string
+  depreciation: string
+  total_debt: string
+  equity: string
+  ebit: string
+}
+
+const emptyFinancialForm: FinancialFormData = {
+  revenue: '',
+  prior_revenue: '',
+  receivables: '',
+  prior_receivables: '',
+  cfo: '',
+  pat: '',
+  cogs: '',
+  inventory: '',
+  payables: '',
+  total_assets: '',
+  prior_total_assets: '',
+  depreciation: '',
+  total_debt: '',
+  equity: '',
+  ebit: '',
+}
+
+const demoFinancialData: FinancialFormData = {
+  revenue: '500000',
+  prior_revenue: '450000',
+  receivables: '80000',
+  prior_receivables: '65000',
+  cfo: '60000',
+  pat: '45000',
+  cogs: '300000',
+  inventory: '50000',
+  payables: '40000',
+  total_assets: '600000',
+  prior_total_assets: '550000',
+  depreciation: '20000',
+  total_debt: '150000',
+  equity: '350000',
+  ebit: '70000',
+}
 
 export function AnalyzeCompany() {
   const navigate = useNavigate()
   const toast = useToast()
-  const [activeStep, setActiveStep] = useState<AnalysisStep>(0)
-  const [company, setCompany] = useState(initialCompany)
-  const [statements, setStatements] = useState<UploadedStatement[]>(statementTypes.map((type) => ({ type, file: null, progress: 0 })))
-  const [mappings, setMappings] = useState<FieldMapping[]>(initialMappings)
-  const [analysisProgress, setAnalysisProgress] = useState(0)
-  const [analysisId, setAnalysisId] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const abortRef = useRef<AbortController | null>(null)
 
-  useEffect(() => { if (activeStep !== 4) return; const timer = window.setInterval(() => setAnalysisProgress((value) => Math.min(value + 2, 100)), 100); return () => window.clearInterval(timer) }, [activeStep])
-  useEffect(() => { if (analysisProgress === 100) { const timer = window.setTimeout(() => navigate('/results'), 700); return () => window.clearTimeout(timer) } }, [analysisProgress, navigate])
-  useEffect(() => () => abortRef.current?.abort(), [])
+  const [activeStep, setActiveStep] = useState<number>(0)
 
-  const updateCompany = (key: keyof CompanyDetails, value: string) => setCompany((current) => ({ ...current, [key]: value }))
-  const updateFile = (index: number, file: File | null) => { setStatements((current) => current.map((statement, statementIndex) => statementIndex === index ? { ...statement, file, progress: file ? 0 : 0 } : statement)) }
-  const updateMapping = (index: number, value: string) => setMappings((current) => current.map((mapping, mappingIndex) => mappingIndex === index ? { ...mapping, standardField: value } : mapping))
-  const canContinue = activeStep === 0 ? Boolean(company.companyName && company.stockSymbol && company.industry && company.country && company.financialYear) : activeStep === 1 ? statements.every(({ file }) => file) && !uploading : true
-  const missingFields = useMemo(() => ['Revenue', 'PAT', 'CFO'].filter((field) => !mappings.some((mapping) => mapping.standardField === field)), [mappings])
+  // Company Step State
+  const [existingCompanies, setExistingCompanies] = useState<CompanyRecord[]>([])
+  const [loadingCompanies, setLoadingCompanies] = useState<boolean>(true)
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string>('')
+  const [isCreatingNewCompany, setIsCreatingNewCompany] = useState<boolean>(false)
+  const [newCompany, setNewCompany] = useState({
+    legal_name: '',
+    ticker: '',
+    industry: 'Technology',
+    country: 'India',
+    financialYear: 'FY 2025–26',
+  })
 
-  const next = () => setActiveStep((step) => Math.min(step + 1, 4) as AnalysisStep)
-  const back = () => setActiveStep((step) => Math.max(step - 1, 0) as AnalysisStep)
+  // Financial Form State
+  const [financials, setFinancials] = useState<FinancialFormData>(emptyFinancialForm)
+  const [isDemoDataLoaded, setIsDemoDataLoaded] = useState<boolean>(false)
 
-  const handleUpload = async () => {
-    const filesToUpload = statements.filter((statement) => statement.file).map((statement) => ({ statementType: statement.type, file: statement.file as File }))
-    if (filesToUpload.length === 0) return
-    setUploading(true)
-    abortRef.current = new AbortController()
+  // Execution State
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false)
+
+  useEffect(() => {
+    fetchCompanies()
+  }, [])
+
+  const fetchCompanies = async () => {
+    setLoadingCompanies(true)
     try {
-      const result = await UploadService.uploadStatements(
-        filesToUpload,
-        (progress: UploadProgress) => {
-          setStatements((current) => current.map((statement) => statement.type === progress.statementType ? { ...statement, progress: progress.progress } : statement))
-        },
-        abortRef.current.signal,
-      )
-      setAnalysisId(result.analysisId)
-      toast.notifySuccess(`Uploaded ${result.uploadedFiles.length} statement${result.uploadedFiles.length === 1 ? '' : 's'} successfully.`)
-      setActiveStep(2)
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Upload failed. Please try again.'
-      toast.notifyError(message)
-      setStatements((current) => current.map((statement) => ({ ...statement, progress: 0 })))
+      const list = await CompanyService.listCompanies()
+      setExistingCompanies(list)
+      if (list.length > 0) {
+        setSelectedCompanyId(list[0].id)
+      } else {
+        setIsCreatingNewCompany(true)
+      }
+    } catch {
+      toast.notifyError('Failed to load existing companies')
+      setIsCreatingNewCompany(true)
     } finally {
-      setUploading(false)
-      abortRef.current = null
+      setLoadingCompanies(false)
     }
   }
 
-  return <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1180, mx: 'auto' }}><Stack direction={{ xs: 'column', md: 'row' }} justifyContent="space-between" spacing={2} sx={{ mb: 3.5 }}><Box><Typography variant="h1">Analyze company</Typography><Typography color="text.secondary" sx={{ mt: .5 }}>Build an evidence-backed earnings profile in five simple steps.</Typography></Box><Chip label="New analysis" color="primary" variant="outlined" sx={{ alignSelf: { md: 'center' } }} /></Stack><Card sx={{ mb: 3, overflowX: 'auto' }}><Stepper activeStep={activeStep} sx={{ p: { xs: 2, md: 3 }, minWidth: 720 }}>{steps.map((step) => <Step key={step}><StepLabel>{step}</StepLabel></Step>)}</Stepper></Card>{activeStep === 0 && <CompanyInformation company={company} updateCompany={updateCompany} />}{activeStep === 1 && <UploadStatements statements={statements} updateFile={updateFile} uploading={uploading} />}{activeStep === 2 && <MappingTable mappings={mappings} onChange={updateMapping} onAutoMap={() => setMappings(initialMappings)} />}{activeStep === 3 && <Validation missingFields={missingFields} analysisId={analysisId} />}{activeStep === 4 && <AnalysisRunning progress={analysisProgress} />}{activeStep < 4 && <Stack direction="row" justifyContent="space-between" sx={{ mt: 3 }}><Button onClick={activeStep === 0 ? () => navigate('/') : back}>{activeStep === 0 ? 'Cancel' : 'Back'}</Button>{activeStep === 1 ? <Button variant="contained" endIcon={<ChevronRight />} disabled={!canContinue} onClick={handleUpload}>{uploading ? 'Uploading…' : 'Upload & continue'}</Button> : <Button variant="contained" endIcon={activeStep === 3 ? <PlayArrow /> : <ChevronRight />} disabled={!canContinue} onClick={next}>{activeStep === 3 ? 'Run analysis' : 'Next'}</Button>}</Stack>}{activeStep === 4 && <Button startIcon={<ChevronLeft />} onClick={back} sx={{ mt: 2 }}>Back to validation</Button>}</Box>
-}
+  const handleFieldChange = (field: keyof FinancialFormData, value: string) => {
+    setFinancials((prev) => ({ ...prev, [field]: value }))
+  }
 
-function CompanyInformation({ company, updateCompany }: { company: CompanyDetails; updateCompany: (key: keyof CompanyDetails, value: string) => void }) {
-  const field = (key: keyof CompanyDetails, label: string, placeholder: string) => <TextField label={label} placeholder={placeholder} value={company[key]} onChange={(event) => updateCompany(key, event.target.value)} fullWidth required />
-  const select = (key: keyof CompanyDetails, label: string, values: string[]) => <FormControl fullWidth required><InputLabel>{label}</InputLabel><Select label={label} value={company[key]} onChange={(event) => updateCompany(key, event.target.value)}>{values.map((value) => <MenuItem key={value} value={value}>{value}</MenuItem>)}</Select></FormControl>
-  return <Card><CardContent sx={{ p: { xs: 2, md: 4 } }}><Box sx={{ maxWidth: 760 }}><Typography variant="h2">Tell us about the company</Typography><Typography color="text.secondary" sx={{ mt: .75, mb: 3.5 }}>We’ll use this information to prepare the right financial benchmarks and analysis context.</Typography><Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2.5 }}>{field('companyName', 'Company name', 'e.g. Acme Corporation')}{field('stockSymbol', 'Stock symbol', 'e.g. ACME')}{select('industry', 'Industry', industries)}{select('country', 'Country', countries)}{select('financialYear', 'Financial year', financialYears)}</Box></Box></CardContent></Card>
-}
+  const handleLoadDemoData = () => {
+    setFinancials(demoFinancialData)
+    setIsDemoDataLoaded(true)
+    toast.notifySuccess('Demo financial data loaded successfully!')
+  }
 
-function UploadStatements({ statements, updateFile, uploading }: { statements: UploadedStatement[]; updateFile: (index: number, file: File | null) => void; uploading: boolean }) {
-  return <Box><Typography variant="h2">Upload financial statements</Typography><Typography color="text.secondary" sx={{ mt: .75, mb: 2.5 }}>Upload the latest annual statements. We accept Excel and CSV files only.</Typography><Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2 }}>{statements.map((statement, index) => <UploadCard key={statement.type} statement={statement} onFileChange={(file) => updateFile(index, file)} disabled={uploading} />)}</Box><Alert severity="info" icon={<InfoOutlined />} sx={{ mt: 2 }}>For best results, upload statements from the same financial year.</Alert></Box>
-}
+  // Calculate Data Coverage
+  const coreFields: (keyof FinancialFormData)[] = [
+    'revenue',
+    'receivables',
+    'cfo',
+    'pat',
+    'cogs',
+    'inventory',
+    'payables',
+    'total_assets',
+  ]
+  const historicalFields: (keyof FinancialFormData)[] = [
+    'prior_revenue',
+    'prior_receivables',
+    'prior_total_assets',
+  ]
+  const disclosureFields: (keyof FinancialFormData)[] = [
+    'depreciation',
+    'total_debt',
+    'equity',
+    'ebit',
+  ]
 
-function Validation({ missingFields, analysisId }: { missingFields: string[]; analysisId: string | null }) {
-  const checks = [{ label: 'Revenue Found', ok: !missingFields.includes('Revenue') }, { label: 'PAT Found', ok: !missingFields.includes('PAT') }, { label: 'CFO Found', ok: !missingFields.includes('CFO') }, { label: 'Inventory Missing', ok: false }, { label: 'Depreciation Missing', ok: false }]
-  return <Box><Typography variant="h2">Validation</Typography><Typography color="text.secondary" sx={{ mt: .75, mb: 2.5 }}>Review the data quality checks before running the analysis.</Typography>{analysisId && <Alert severity="success" icon={<CheckCircleOutline />} sx={{ mb: 2 }}>Statements uploaded. Analysis ID: <strong>{analysisId}</strong></Alert>}<Card><CardContent sx={{ p: { xs: 2, md: 3 } }}><Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} alignItems={{ sm: 'center' }} sx={{ mb: 3 }}><Box sx={{ flex: 1 }}><Typography variant="h3">Validation summary</Typography><Typography variant="body2" color="text.secondary" sx={{ mt: .5 }}>18 of 20 recommended fields reviewed</Typography></Box><Typography variant="h2" color="warning.main">90%</Typography></Stack><LinearProgress variant="determinate" value={90} color="warning" sx={{ height: 7, borderRadius: 4, mb: 3 }} /><Stack spacing={1.25}>{checks.map((check) => <Stack direction="row" alignItems="center" spacing={1.25} key={check.label} sx={{ p: 1.25, bgcolor: check.ok ? 'rgba(15,159,114,.06)' : 'rgba(217,139,16,.07)', borderRadius: 1.5 }}>{check.ok ? <CheckCircleOutline color="success" fontSize="small" /> : <WarningAmberOutlined color="warning" fontSize="small" />}<Typography variant="body2" fontWeight={650}>{check.label}</Typography><Typography variant="caption" color="text.secondary" sx={{ ml: 'auto' }}>{check.ok ? 'Successfully detected' : 'Warning'}</Typography></Stack>)}</Stack></CardContent></Card><Alert severity="warning" icon={<ErrorOutline />} sx={{ mt: 2 }}>Some optional fields are missing. You can still run the analysis, but the confidence score may be lower.</Alert></Box>
-}
+  const countFilled = (fields: (keyof FinancialFormData)[]) =>
+    fields.filter((f) => financials[f] !== undefined && financials[f].trim() !== '').length
 
-function AnalysisRunning({ progress }: { progress: number }) {
-  const completed = Math.floor((progress / 100) * analysisChecklist.length)
-  return <Card><CardContent sx={{ p: { xs: 3, md: 6 }, textAlign: 'center' }}><Box sx={{ maxWidth: 560, mx: 'auto' }}><Box sx={{ width: 64, height: 64, borderRadius: '50%', border: '3px solid', borderColor: 'primary.main', display: 'grid', placeItems: 'center', mx: 'auto', mb: 2, animation: 'pulse 1.8s ease-in-out infinite', '@keyframes pulse': { '50%': { transform: 'scale(1.06)', opacity: .7 } } }}><PlayArrow color="primary" /></Box><Typography variant="h2">Analyzing your company</Typography><Typography color="text.secondary" sx={{ mt: .75 }}>EarningsGuard™ AI is turning your statements into actionable intelligence.</Typography><Stack direction="row" alignItems="center" spacing={2} sx={{ mt: 4 }}><LinearProgress variant="determinate" value={progress} sx={{ flex: 1, height: 8, borderRadius: 4 }} /><Typography variant="body2" fontWeight={750} sx={{ minWidth: 40, textAlign: 'right' }}>{progress}%</Typography></Stack><Stack spacing={1.25} sx={{ mt: 4, textAlign: 'left' }}>{analysisChecklist.map((item, index) => <Stack direction="row" alignItems="center" spacing={1.25} key={item} sx={{ color: index < completed ? 'success.main' : 'text.secondary' }}>{index < completed ? <CheckCircleOutline fontSize="small" /> : <Box sx={{ width: 18, height: 18, border: '1px solid', borderColor: 'divider', borderRadius: '50%' }} />}<Typography variant="body2" fontWeight={index < completed ? 700 : 500}>{item}</Typography>{index < completed && <Chip label="Complete" size="small" color="success" variant="outlined" sx={{ ml: 'auto' }} />}</Stack>)}</Stack></Box></CardContent></Card>
+  const coreCoveragePct = Math.round((countFilled(coreFields) / coreFields.length) * 100)
+  const historicalCoveragePct = Math.round(
+    (countFilled(historicalFields) / historicalFields.length) * 100
+  )
+  const disclosureCoveragePct = Math.round(
+    (countFilled(disclosureFields) / disclosureFields.length) * 100
+  )
+
+  const canProceedStep0 = isCreatingNewCompany
+    ? Boolean(newCompany.legal_name.trim())
+    : Boolean(selectedCompanyId)
+
+  const handleNextStep0 = async () => {
+    if (isCreatingNewCompany) {
+      try {
+        const created = await CompanyService.createCompany({
+          legal_name: newCompany.legal_name,
+          ticker: newCompany.ticker || undefined,
+          industry: newCompany.industry,
+          country: newCompany.country,
+        })
+        setSelectedCompanyId(created.id)
+        toast.notifySuccess(`Company '${created.legal_name}' created successfully.`)
+      } catch (err) {
+        toast.notifyError(err instanceof Error ? err.message : 'Failed to create company')
+        return
+      }
+    }
+    setActiveStep(1)
+  }
+
+  const handleRunAssessment = async () => {
+    setIsSubmitting(true)
+    setActiveStep(3)
+
+    try {
+      // Build raw_variables payload preserving missing values
+      const rawVars: Record<string, number> = {}
+      Object.entries(financials).forEach(([key, val]) => {
+        if (val !== undefined && val.trim() !== '') {
+          const num = Number(val)
+          if (!isNaN(num)) {
+            rawVars[key] = num
+          }
+        }
+      })
+
+      const analysisId = `analysis_${Date.now()}`
+      await EFSService.getAssessment(analysisId, {
+        methodology_version: '1.0',
+        statement_flags: {
+          has_cash_flow_statement: true,
+          has_balance_sheet: true,
+          has_income_statement: true,
+        },
+        raw_variables: rawVars,
+      })
+
+      toast.notifySuccess('EFS Assessment complete and snapshot persisted!')
+      navigate(`/assessments/${analysisId}`)
+    } catch (err) {
+      toast.notifyError(err instanceof Error ? err.message : 'Failed to run EFS Assessment')
+      setActiveStep(2)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1180, mx: 'auto' }}>
+      <Stack
+        direction={{ xs: 'column', md: 'row' }}
+        justifyContent="space-between"
+        spacing={2}
+        sx={{ mb: 3.5 }}
+      >
+        <Box>
+          <Typography variant="h1">New Forensic Assessment</Typography>
+          <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+            Prepare structured financial input for the EFS™ deterministic engine.
+          </Typography>
+        </Box>
+        <Chip
+          label="EFS Assessment Pipeline"
+          color="primary"
+          variant="outlined"
+          sx={{ alignSelf: { md: 'center' } }}
+        />
+      </Stack>
+
+      <Card sx={{ mb: 3, overflowX: 'auto' }}>
+        <Stepper activeStep={activeStep} sx={{ p: { xs: 2, md: 3 }, minWidth: 600 }}>
+          {steps.map((label) => (
+            <Step key={label}>
+              <StepLabel>{label}</StepLabel>
+            </Step>
+          ))}
+        </Stepper>
+      </Card>
+
+      {/* STEP 0 — COMPANY SELECTION / CREATION */}
+      {activeStep === 0 && (
+        <Card>
+          <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+            <Box sx={{ maxWidth: 760 }}>
+              <Typography variant="h2">Select or Create Company</Typography>
+              <Typography color="text.secondary" sx={{ mt: 0.75, mb: 3 }}>
+                Link this assessment to an existing company entity or register a new one.
+              </Typography>
+
+              {loadingCompanies ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                  <CircularProgress size={32} />
+                </Box>
+              ) : !isCreatingNewCompany && existingCompanies.length > 0 ? (
+                <Stack spacing={2.5}>
+                  <FormControl fullWidth>
+                    <InputLabel>Select Existing Company</InputLabel>
+                    <Select
+                      label="Select Existing Company"
+                      value={selectedCompanyId}
+                      onChange={(e) => setSelectedCompanyId(e.target.value)}
+                    >
+                      {existingCompanies.map((c) => (
+                        <MenuItem key={c.id} value={c.id}>
+                          {c.legal_name} {c.ticker ? `(${c.ticker})` : ''} — {c.industry || 'General'}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                  <Button
+                    variant="text"
+                    onClick={() => setIsCreatingNewCompany(true)}
+                    sx={{ alignSelf: 'flex-start' }}
+                  >
+                    + Create New Company
+                  </Button>
+                </Stack>
+              ) : (
+                <Stack spacing={2.5}>
+                  <TextField
+                    label="Company Legal Name"
+                    placeholder="e.g. Acme Corp India Ltd"
+                    value={newCompany.legal_name}
+                    onChange={(e) => setNewCompany({ ...newCompany, legal_name: e.target.value })}
+                    fullWidth
+                    required
+                  />
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                      gap: 2,
+                    }}
+                  >
+                    <TextField
+                      label="Stock Symbol / Ticker (Optional)"
+                      placeholder="e.g. ACME"
+                      value={newCompany.ticker}
+                      onChange={(e) => setNewCompany({ ...newCompany, ticker: e.target.value })}
+                      fullWidth
+                    />
+                    <FormControl fullWidth>
+                      <InputLabel>Industry</InputLabel>
+                      <Select
+                        label="Industry"
+                        value={newCompany.industry}
+                        onChange={(e) => setNewCompany({ ...newCompany, industry: e.target.value })}
+                      >
+                        {industries.map((ind) => (
+                          <MenuItem key={ind} value={ind}>
+                            {ind}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' },
+                      gap: 2,
+                    }}
+                  >
+                    <FormControl fullWidth>
+                      <InputLabel>Country</InputLabel>
+                      <Select
+                        label="Country"
+                        value={newCompany.country}
+                        onChange={(e) => setNewCompany({ ...newCompany, country: e.target.value })}
+                      >
+                        {countries.map((c) => (
+                          <MenuItem key={c} value={c}>
+                            {c}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                    <FormControl fullWidth>
+                      <InputLabel>Financial Year</InputLabel>
+                      <Select
+                        label="Financial Year"
+                        value={newCompany.financialYear}
+                        onChange={(e) =>
+                          setNewCompany({ ...newCompany, financialYear: e.target.value })
+                        }
+                      >
+                        {financialYears.map((fy) => (
+                          <MenuItem key={fy} value={fy}>
+                            {fy}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+
+                  {existingCompanies.length > 0 && (
+                    <Button
+                      variant="text"
+                      onClick={() => setIsCreatingNewCompany(false)}
+                      sx={{ alignSelf: 'flex-start' }}
+                    >
+                      ← Back to Existing Companies
+                    </Button>
+                  )}
+                </Stack>
+              )}
+            </Box>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* STEP 1 — STRUCTURED FINANCIAL INPUT & DATA COVERAGE */}
+      {activeStep === 1 && (
+        <Grid container spacing={3}>
+          <Grid size={{ xs: 12, md: 8 }}>
+            <Card>
+              <CardContent sx={{ p: { xs: 2, md: 3.5 } }}>
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  justifyContent="space-between"
+                  alignItems={{ sm: 'center' }}
+                  spacing={1.5}
+                  sx={{ mb: 2.5 }}
+                >
+                  <Box>
+                    <Typography variant="h2">Financial Statement Data</Typography>
+                    <Typography color="text.secondary" variant="body2" sx={{ mt: 0.5 }}>
+                      Enter standard accounting figures. Missing fields are preserved as un-evaluated.
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    startIcon={<PlayCircleOutline />}
+                    onClick={handleLoadDemoData}
+                    size="small"
+                  >
+                    Load Demo Data
+                    <Chip
+                      label="DEMO DATA"
+                      size="small"
+                      color="warning"
+                      sx={{ ml: 1, height: 18, fontSize: '0.6rem', fontWeight: 800 }}
+                    />
+                  </Button>
+                </Stack>
+
+                {isDemoDataLoaded && (
+                  <Alert severity="info" icon={<InfoOutlined />} sx={{ mb: 2.5 }}>
+                    Loaded sample financial data for demonstration (<strong>DEMO DATA</strong>). You can edit any field.
+                  </Alert>
+                )}
+
+                <Stack spacing={3}>
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: 'primary.main' }}>
+                      INCOME STATEMENT & CASH FLOW
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="Revenue / Net Sales"
+                          placeholder="e.g. 500000"
+                          value={financials.revenue}
+                          onChange={(e) => handleFieldChange('revenue', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="Previous Year Revenue"
+                          placeholder="e.g. 450000"
+                          value={financials.prior_revenue}
+                          onChange={(e) => handleFieldChange('prior_revenue', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="Cash Flow From Operations (CFO)"
+                          placeholder="e.g. 60000"
+                          value={financials.cfo}
+                          onChange={(e) => handleFieldChange('cfo', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="Profit After Tax (PAT) / Net Income"
+                          placeholder="e.g. 45000"
+                          value={financials.pat}
+                          onChange={(e) => handleFieldChange('pat', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="Cost of Goods Sold (COGS)"
+                          placeholder="e.g. 300000"
+                          value={financials.cogs}
+                          onChange={(e) => handleFieldChange('cogs', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="EBIT / Operating Profit"
+                          placeholder="e.g. 70000"
+                          value={financials.ebit}
+                          onChange={(e) => handleFieldChange('ebit', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
+
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5, color: 'primary.main' }}>
+                      BALANCE SHEET ITEMS
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="Accounts Receivable"
+                          placeholder="e.g. 80000"
+                          value={financials.receivables}
+                          onChange={(e) => handleFieldChange('receivables', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="Previous Year Accounts Receivable"
+                          placeholder="e.g. 65000"
+                          value={financials.prior_receivables}
+                          onChange={(e) => handleFieldChange('prior_receivables', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="Inventory"
+                          placeholder="e.g. 50000"
+                          value={financials.inventory}
+                          onChange={(e) => handleFieldChange('inventory', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="Accounts Payable"
+                          placeholder="e.g. 40000"
+                          value={financials.payables}
+                          onChange={(e) => handleFieldChange('payables', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="Total Assets"
+                          placeholder="e.g. 600000"
+                          value={financials.total_assets}
+                          onChange={(e) => handleFieldChange('total_assets', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="Previous Year Total Assets"
+                          placeholder="e.g. 550000"
+                          value={financials.prior_total_assets}
+                          onChange={(e) => handleFieldChange('prior_total_assets', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="Total Debt"
+                          placeholder="e.g. 150000"
+                          value={financials.total_debt}
+                          onChange={(e) => handleFieldChange('total_debt', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="Shareholder Equity"
+                          placeholder="e.g. 350000"
+                          value={financials.equity}
+                          onChange={(e) => handleFieldChange('equity', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <TextField
+                          label="Depreciation & Amortization"
+                          placeholder="e.g. 20000"
+                          value={financials.depreciation}
+                          onChange={(e) => handleFieldChange('depreciation', e.target.value)}
+                          fullWidth
+                        />
+                      </Grid>
+                    </Grid>
+                  </Box>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+
+          {/* DATA COVERAGE PANEL */}
+          <Grid size={{ xs: 12, md: 4 }}>
+            <Card sx={{ position: 'sticky', top: 20 }}>
+              <CardContent sx={{ p: 2.5 }}>
+                <Typography variant="h3" sx={{ mb: 0.5 }}>
+                  Financial Data Coverage
+                </Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2.5 }}>
+                  Data availability indicators computed from non-empty backend inputs.
+                </Typography>
+
+                <Stack spacing={2.5}>
+                  <Box>
+                    <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.75 }}>
+                      <Typography variant="body2" fontWeight={650}>
+                        Core financial data
+                      </Typography>
+                      <Typography variant="body2" fontWeight={750} color="primary.main">
+                        {coreCoveragePct}%
+                      </Typography>
+                    </Stack>
+                    <LinearProgress
+                      variant="determinate"
+                      value={coreCoveragePct}
+                      sx={{ height: 7, borderRadius: 4 }}
+                    />
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                      {countFilled(coreFields)} of {coreFields.length} core fields entered
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.75 }}>
+                      <Typography variant="body2" fontWeight={650}>
+                        Historical data
+                      </Typography>
+                      <Typography variant="body2" fontWeight={750} color="primary.main">
+                        {historicalCoveragePct}%
+                      </Typography>
+                    </Stack>
+                    <LinearProgress
+                      variant="determinate"
+                      value={historicalCoveragePct}
+                      color="secondary"
+                      sx={{ height: 7, borderRadius: 4 }}
+                    />
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                      {countFilled(historicalFields)} of {historicalFields.length} prior year fields entered
+                    </Typography>
+                  </Box>
+
+                  <Box>
+                    <Stack direction="row" justifyContent="space-between" sx={{ mb: 0.75 }}>
+                      <Typography variant="body2" fontWeight={650}>
+                        Disclosure data
+                      </Typography>
+                      <Typography variant="body2" fontWeight={750} color="primary.main">
+                        {disclosureCoveragePct}%
+                      </Typography>
+                    </Stack>
+                    <LinearProgress
+                      variant="determinate"
+                      value={disclosureCoveragePct}
+                      color="info"
+                      sx={{ height: 7, borderRadius: 4 }}
+                    />
+                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
+                      {countFilled(disclosureFields)} of {disclosureFields.length} disclosure fields entered
+                    </Typography>
+                  </Box>
+
+                  <Alert severity="info" icon={<InfoOutlined fontSize="small" />} sx={{ fontSize: '0.75rem' }}>
+                    Additional historical periods improve EFS coverage for trend and growth variables.
+                  </Alert>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Grid>
+        </Grid>
+      )}
+
+      {/* STEP 2 — REVIEW & VALIDATE */}
+      {activeStep === 2 && (
+        <Card>
+          <CardContent sx={{ p: { xs: 2, md: 4 } }}>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              justifyContent="space-between"
+              alignItems={{ sm: 'center' }}
+              spacing={2}
+              sx={{ mb: 3 }}
+            >
+              <Box>
+                <Typography variant="h2">Review Financial Data</Typography>
+                <Typography color="text.secondary" sx={{ mt: 0.5 }}>
+                  Verify figures before running the deterministic EFS™ engine.
+                </Typography>
+              </Box>
+              <Button
+                startIcon={<EditOutlined />}
+                variant="outlined"
+                onClick={() => setActiveStep(1)}
+              >
+                Edit Data
+              </Button>
+            </Stack>
+
+            <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid #e2e8f0', mb: 3 }}>
+              <Table size="small">
+                <TableHead>
+                  <TableRow sx={{ bgcolor: '#f8fafc' }}>
+                    <TableCell sx={{ fontWeight: 700 }}>FINANCIAL STATEMENT LINE ITEM</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>VALUE</TableCell>
+                    <TableCell sx={{ fontWeight: 700 }}>STATUS</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {[
+                    { label: 'Revenue / Net Sales', key: 'revenue' },
+                    { label: 'Previous Year Revenue', key: 'prior_revenue' },
+                    { label: 'Accounts Receivable', key: 'receivables' },
+                    { label: 'Previous Year Accounts Receivable', key: 'prior_receivables' },
+                    { label: 'Cash Flow From Operations (CFO)', key: 'cfo' },
+                    { label: 'Profit After Tax (PAT)', key: 'pat' },
+                    { label: 'Cost of Goods Sold (COGS)', key: 'cogs' },
+                    { label: 'Inventory', key: 'inventory' },
+                    { label: 'Accounts Payable', key: 'payables' },
+                    { label: 'Total Assets', key: 'total_assets' },
+                    { label: 'Previous Year Total Assets', key: 'prior_total_assets' },
+                    { label: 'Total Debt', key: 'total_debt' },
+                    { label: 'Shareholder Equity', key: 'equity' },
+                    { label: 'Depreciation & Amortization', key: 'depreciation' },
+                    { label: 'EBIT / Operating Profit', key: 'ebit' },
+                  ].map((row) => {
+                    const rawVal = financials[row.key as keyof FinancialFormData]
+                    const hasVal = rawVal !== undefined && rawVal.trim() !== ''
+                    const numVal = Number(rawVal)
+                    const isValidNum = hasVal && !isNaN(numVal)
+
+                    return (
+                      <TableRow key={row.key} hover>
+                        <TableCell sx={{ fontWeight: 600 }}>{row.label}</TableCell>
+                        <TableCell sx={{ fontFamily: 'monospace', fontWeight: 700 }}>
+                          {hasVal ? (isValidNum ? Number(rawVal).toLocaleString('en-IN') : rawVal) : '—'}
+                        </TableCell>
+                        <TableCell>
+                          {hasVal ? (
+                            isValidNum ? (
+                              <Chip label="Valid Number" color="success" size="small" variant="outlined" />
+                            ) : (
+                              <Chip label="Invalid Value" color="error" size="small" />
+                            )
+                          ) : (
+                            <Chip label="Missing / Optional" color="default" size="small" variant="outlined" />
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
+                </TableBody>
+              </Table>
+            </TableContainer>
+
+            <Alert severity="success" icon={<CheckCircleOutline />} sx={{ mb: 2 }}>
+              Inputs validated cleanly. EFS deterministic calculation will evaluate 95 frozen variables, 110 rule conditions, and 5 established forensic models.
+            </Alert>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* STEP 3 — RUNNING ASSESSMENT PROGRESS */}
+      {activeStep === 3 && (
+        <Card>
+          <CardContent sx={{ p: { xs: 4, md: 6 }, textAlign: 'center' }}>
+            <Box sx={{ maxWidth: 520, mx: 'auto' }}>
+              <CircularProgress size={48} sx={{ mb: 3 }} />
+              <Typography variant="h2">Running Deterministic EFS Engine...</Typography>
+              <Typography color="text.secondary" sx={{ mt: 1, mb: 3 }}>
+                Preparing assessment snapshot, evaluating 95 variables across 7 pillars, and persisting immutable audit record to PostgreSQL Neon.
+              </Typography>
+            </Box>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* FOOTER ACTIONS */}
+      {activeStep < 3 && (
+        <Stack direction="row" justifyContent="space-between" sx={{ mt: 3 }}>
+          <Button
+            onClick={activeStep === 0 ? () => navigate('/') : () => setActiveStep((s) => s - 1)}
+          >
+            {activeStep === 0 ? 'Cancel' : 'Back'}
+          </Button>
+
+          {activeStep === 0 && (
+            <Button
+              variant="contained"
+              endIcon={<ChevronRight />}
+              disabled={!canProceedStep0}
+              onClick={handleNextStep0}
+            >
+              Continue to Financial Data
+            </Button>
+          )}
+
+          {activeStep === 1 && (
+            <Button
+              variant="contained"
+              endIcon={<ChevronRight />}
+              onClick={() => setActiveStep(2)}
+            >
+              Review Data
+            </Button>
+          )}
+
+          {activeStep === 2 && (
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<PlayArrow />}
+              disabled={isSubmitting}
+              onClick={handleRunAssessment}
+            >
+              {isSubmitting ? 'Running EFS…' : 'Confirm & Run EFS'}
+            </Button>
+          )}
+        </Stack>
+      )}
+    </Box>
+  )
 }

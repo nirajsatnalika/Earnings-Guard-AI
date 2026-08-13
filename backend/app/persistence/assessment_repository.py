@@ -126,8 +126,11 @@ class AssessmentRepository:
         return assessment
 
     def get_assessment_by_id(self, session: Session, assessment_id: str) -> Optional[Assessment]:
-        """Get assessment by primary key."""
-        return session.get(Assessment, assessment_id)
+        """Get assessment by primary key or analysis_id."""
+        record = session.get(Assessment, assessment_id)
+        if not record:
+            record = session.query(Assessment).filter_by(analysis_id=assessment_id).first()
+        return record
 
     def get_assessment_by_analysis_id(
         self, session: Session, analysis_id: str
